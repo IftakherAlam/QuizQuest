@@ -1,0 +1,71 @@
+# Ignore Visual Studio user-specific files
+.vscode/
+*.vs
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Ignore build output and NuGet packages
+bin/
+obj/
+packages/
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.cache
+*.log
+
+# Ignore configuration files
+appsettings.*.json
+secrets.json
+
+# Ignore compiled files
+*.exe
+*.dll
+*.pdb
+*.log
+*.cache
+*.ilk
+*.ncb
+*.obj
+*.pch
+*.pdb
+*.sbr
+*.sdf
+*.opensdf
+*.tlog
+*.vcxproj.user
+
+# Ignore dependencies
+node_modules/
+
+# Ignore Entity Framework migrations
+Migrations/
+
+# Ignore Rider and Resharper files
+.idea/
+*.sln.iml
+
+# Ignore database files
+*.mdf
+*.ldf
+
+# Ignore publish output
+publish/
+wwwroot/
+
+# Ignore environment variables
+.env
+
+# Ignore JetBrains Rider project files
+.idea/
+*.sln.iml
+
+# Ignore compiled Views
+**/Views/**.g.cs
+
+# Ignore coverage files
+coverage/
+*.coverlet.tracker

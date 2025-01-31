@@ -1,0 +1,35 @@
+@model QuizFormsApp.ViewModels.FormViewModel
+
+<h2>Fill Out Form - @Model.TemplateTitle</h2>
+
+<form asp-action="Submit" method="post">
+    <input type="hidden" asp-for="TemplateId" />
+
+    @foreach (var question in Model.Questions)
+    {
+        <div class="form-group mb-3">
+            <label>@question.QuestionText</label>
+            <input type="hidden" asp-for="Questions[@Model.Questions.IndexOf(question)].QuestionId" />
+            <input type="hidden" asp-for="Questions[@Model.Questions.IndexOf(question)].Type" />
+
+            @if (question.Type == "SingleLineText")
+            {
+                <input asp-for="Questions[@Model.Questions.IndexOf(question)].Answer" class="form-control" required />
+            }
+            else if (question.Type == "MultiLineText")
+            {
+                <textarea asp-for="Questions[@Model.Questions.IndexOf(question)].Answer" class="form-control" required></textarea>
+            }
+            else if (question.Type == "Integer")
+            {
+                <input type="number" asp-for="Questions[@Model.Questions.IndexOf(question)].Answer" class="form-control" required />
+            }
+            else if (question.Type == "Checkbox")
+            {
+                <input type="checkbox" asp-for="Questions[@Model.Questions.IndexOf(question)].Answer" value="true" />
+            }
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary mt-3">Submit</button>
+</form>

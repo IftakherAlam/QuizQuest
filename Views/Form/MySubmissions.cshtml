@@ -1,0 +1,27 @@
+@model IEnumerable<QuizFormsApp.Models.Form>
+
+<h2>My Submitted Forms</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Form ID</th>
+            <th>Template</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var form in Model)
+        {
+            <tr>
+                <td>@form.Id</td>
+                <td>@form.Template.Title</td>
+                <td>@form.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                <td>
+                    <a class="btn btn-info" asp-action="View" asp-route-formId="@form.Id">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

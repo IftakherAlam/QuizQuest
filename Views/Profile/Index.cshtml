@@ -1,0 +1,20 @@
+@model QuizFormsApp.Models.ApplicationUser
+
+<form asp-action="Update" method="post">
+    <label>Display Name</label>
+    <input asp-for="DisplayName" class="form-control" required />
+
+    <label>Preferred Language</label>
+    <select asp-for="PreferredLanguage" class="form-control">
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+    </select>
+
+    <label>Theme</label>
+    <select asp-for="Theme" class="form-control">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+</form>

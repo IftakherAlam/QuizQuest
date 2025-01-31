@@ -1,0 +1,23 @@
+@model IEnumerable<QuizFormsApp.Models.Template>
+
+<h2>Your Templates</h2>
+<a class="btn btn-primary mb-3" asp-action="Create">Create New Template</a>
+
+<div class="row">
+    @foreach (var template in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-3 shadow">
+                <div class="card-body">
+                    <h5 class="card-title">@template.Title</h5>
+                    <p class="card-text">@template.Description</p>
+                    <a asp-action="Details" asp-route-id="@template.Id" class="btn btn-info">View</a>
+                    <a asp-action="Edit" asp-route-id="@template.Id" class="btn btn-warning">Edit</a>
+                    <form asp-action="Delete" asp-route-id="@template.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>

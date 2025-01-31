@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h3>Top 5 Most Liked 1 Templates</h3>
+<div class="row">
+    @foreach (var template in Model)
+    {
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@template.Title</h5>
+                    <p class="card-text">@template.Description</p>
+                    <a asp-action="Details" asp-route-id="@template.Id" class="btn btn-info">View</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

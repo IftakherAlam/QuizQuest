@@ -1,0 +1,103 @@
+@model QuizFormsApp.Models.Template
+
+<h2>@Model.Title</h2>
+<p>@Model.Description</p>
+
+@if (Model.ImageUrl != null)
+{
+    <img src="@Model.ImageUrl" alt="Template Image" class="img-fluid" />
+}
+
+<p><strong>Created by:</strong> @Model.Author.DisplayName</p>
+<p><strong>Public:</strong> @(Model.IsPublic ? "Yes" : "No")</p>
+
+<h3>Questions</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var question in Model.Questions)
+        {
+            <tr>
+                <td>@question.Text</td>
+                <td>@question.Type</td>
+                <td>@question.Description</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">Fill Out Form</a>
+}
+
+<a class="btn btn-info" asp-action="Analytics" asp-route-templateId="@Model.Id">View Analytics</a>
+
+<h3>Comments</h3>
+<div id="comments">
+    @foreach (var comment in Model.Comments)
+    {
+        <div class="card mb-2">
+            <div class="card-body">
+                <strong>@comment.User.DisplayName</strong> - <span class="text-muted">@comment.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                <p>@comment.Text</p>
+            </div>
+        </div>
+    }
+</div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <form id="commentForm">
+        <textarea id="commentText" class="form-control" placeholder="Write a comment..." required></textarea>
+        <button type="submit" class="btn btn-success mt-2">Post Comment</button>
+    </form>
+}
+<button id="likeButton" class="btn btn-outline-danger">
+    ❤️ <span id="likeCount">@Model.Likes.Count</span>
+</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder().withUrl("/commentHub").build();
+
+    connection.on("ReceiveComment", function (templateId, userName, text) {
+        if (templateId == @Model.Id) {
+            var newComment = `<div class="card mb-2">
+                <div class="card-body">
+                    <strong>${userName}</strong> - <span class="text-muted">Just now</span>
+                    <p>${text}</p>
+                </div>
+            </div>`;
+            document.getElementById("comments").innerHTML += newComment;
+        }
+    });
+
+    connection.start().catch(err => console.error(err.toString()));
+
+    document.getElementById("commentForm")?.addEventListener("submit", function(event) {
+        event.preventDefault();
+        let commentText = document.getElementById("commentText").value;
+
+        fetch('/Comment/Add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ templateId: @Model.Id, text: commentText })
+        }).then(response => {
+            if (response.ok) document.getElementById("commentText").value = "";
+        });
+    });
+    document.getElementById("likeButton")?.addEventListener("click", function() {
+    fetch('/Like/ToggleLike?templateId=@Model.Id', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("likeCount").textContent = data.likes;
+        });
+});
+</script>

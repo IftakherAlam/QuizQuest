@@ -1,0 +1,21 @@
+@model QuizFormsApp.Models.Form
+
+<h2>Form Submission - @Model.Template.Title</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Answer</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var answer in Model.Answers)
+        {
+            <tr>
+                <td>@answer.Question.Text</td>
+                <td>@answer.Value</td>
+            </tr>
+        }
+    </tbody>
+</table>

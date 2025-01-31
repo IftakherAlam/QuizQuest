@@ -1,0 +1,33 @@
+@model Dictionary<string, object>
+
+<h2>Form Analytics</h2>
+
+@if (!Model.Any())
+{
+    <p>No numeric data available for analysis.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Average</th>
+                <th>Min</th>
+                <th>Max</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Model)
+            {
+                var stats = entry.Value as dynamic;
+                <tr>
+                    <td>@entry.Key</td>
+                    <td>@stats.Average</td>
+                    <td>@stats.Min</td>
+                    <td>@stats.Max</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
