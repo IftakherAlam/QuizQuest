@@ -1,0 +1,87 @@
+/* ✅ Sidebar: Initially Collapsed */
+#adminSidebar {
+    width: 60px;
+    position: relative;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background-color: #5c7996;
+    color: white;
+    overflow-x: hidden;
+    transition: width 0.2s ease-in-out;
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ Expanded Sidebar */
+#adminSidebar.expanded {
+    width: 250px;
+}
+
+/* ✅ Hide Sidebar Text When Collapsed */
+#adminSidebar .nav-link {
+    color: white;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s ease-in-out;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* ✅ Hide Text Inside the Sidebar When Collapsed */
+#adminSidebar:not(.expanded) .nav-link span {
+    display: none;
+}
+
+/* ✅ Sidebar Icons */
+#adminSidebar .nav-link i {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+}
+
+/* ✅ Sidebar Toggle Icon */
+#sidebarToggle {
+    font-size: 1.5rem;
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    transition: color 0.3s ease-in-out;
+    margin-left: 10px;
+}
+
+/* ✅ Hide Sidebar Toggle when Expanded */
+#adminSidebar.expanded ~ #sidebarToggle {
+    display: none;
+}
+
+/* ✅ Main Content: Adjust when Sidebar Expands */
+.admin-content {
+    margin-left: 60px;
+    transition: margin-left 0.3s ease-in-out;
+    padding: 20px;
+}
+
+#adminSidebar.expanded ~ .admin-content {
+    margin-left: 250px;
+}
+
+/* ✅ Footer */
+.admin-footer {
+    background-color: #343a40;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* ✅ Mobile: Sidebar Always Open */
+@media (max-width: 768px) {
+    #adminSidebar {
+        width: 250px;
+    }
+    
+    .admin-content {
+        margin-left: 250px;
+    }
+}

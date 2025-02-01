@@ -22,8 +22,17 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+
+//✅ for restrict the admin dashboard to users with the admin role only
+
+builder.Services.AddAuthorization(option =>
+{
+    option.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
 // ✅ Add MVC and Razor Pages
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation();
 builder.Services.AddRazorPages(); 
 
 var app = builder.Build();

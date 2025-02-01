@@ -15,8 +15,9 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5286",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+    "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
+}
+
     },
     "https": {
       "commandName": "Project",
@@ -27,6 +28,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
