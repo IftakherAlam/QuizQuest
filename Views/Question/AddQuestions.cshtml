@@ -1,0 +1,64 @@
+@model QuizFormsApp.Models.Template
+
+@{
+    ViewData["Title"] = "Add Questions to " + Model.Title;
+}
+
+<h2>Add Questions to @Model.Title</h2>
+
+<!-- ✅ Form to Add Questions -->
+<form asp-controller="Question" asp-action="AddQuestion" method="post">
+    <input type="hidden" name="templateId" value="@Model.Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Question Text</label>
+        <input type="text" name="text" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Type</label>
+        <select name="type" class="form-select">
+            <option value="0">Single-Line Text</option>
+            <option value="1">Multi-Line Text</option>
+            <option value="2">Integer</option>
+            <option value="3">Checkbox</option>
+        </select>
+    </div>
+
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="isInTable" class="form-check-input" />
+        <label class="form-check-label">Show in Results Table</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Add Question</button>
+</form>
+
+<hr />
+
+<!-- ✅ Display List of Added Questions -->
+<h3>Questions in @Model.Title</h3>
+@if (Model.Questions.Any())
+{
+    <ul class="list-group">
+        @foreach (var question in Model.Questions.OrderBy(q => q.OrderIndex))
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@question.Text (@question.Type)</span>
+                <form asp-controller="Question" asp-action="DeleteQuestion" method="post">
+                    <input type="hidden" name="questionId" value="@question.Id" />
+                    <input type="hidden" name="templateId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No questions added yet.</p>
+}

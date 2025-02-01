@@ -22,73 +22,132 @@ namespace QuizFormsApp.Controllers
             _userManager = userManager;
         }
 
-        // List Templates
+ 
+        // ✅ View All Templates (Everyone can access)
         public async Task<IActionResult> Index()
         {
             var templates = await _context.Templates.Include(t => t.Author).ToListAsync();
             return View(templates);
         }
-
-        // Create Template (GET)
-        public IActionResult Create()
+         // ✅ View Template Details
+        public async Task<IActionResult> Details(int id)
         {
-            return View();
-        }
+            var template = await _context.Templates
+                .Include(t => t.Author)
+                .Include(t => t.Questions)
+                .Include(t => t.AllowedUsers)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-        // Create Template (POST)
-        [HttpPost]
-        public async Task<IActionResult> Create(Template template)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await _userManager.GetUserAsync(User);
-                template.AuthorId = user.Id;
-                _context.Templates.Add(template);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+            if (template == null) return NotFound();
+
+            // ✅ Check if user has access
+            var user = await _userManager.GetUserAsync(User);
+            if (!template.IsPublic && !template.AllowedUsers.Any(u => u.UserId == user.Id))
+                return Forbid();
+
             return View(template);
         }
+        // ✅ Create Template (Only "Creator" & "Admin" roles can access)
+          [Authorize(Roles = "Admin,Creator")]
+        public IActionResult Create()
+        {
+            return View(new Template { Questions = new List<Question>() });
+        }
 
-        // Edit Template (GET)
+[HttpPost]
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Admin,Creator")]
+public async Task<IActionResult> Create(Template template)
+{
+    var user = await _userManager.GetUserAsync(User);
+    
+    if (user == null)
+    {
+        return Unauthorized();
+    }
+
+    template.AuthorId = user.Id;
+
+    ModelState.Remove("AuthorId");
+    ModelState.Remove("Author");
+
+    if (!ModelState.IsValid)
+    {
+        return View(template);
+    }
+
+    _context.Templates.Add(template);
+    await _context.SaveChangesAsync();
+
+    // ✅ Redirect to Add Questions page after creating template
+    return RedirectToAction("AddQuestions", "Question", new { templateId = template.Id });
+}
+
+
+        // ✅ Edit Template (Only "Creator" can edit their own & Admin can edit any)
+        [Authorize(Roles = "Admin,Creator")]
         public async Task<IActionResult> Edit(int id)
         {
             var template = await _context.Templates.FindAsync(id);
-            if (template == null || template.AuthorId != _userManager.GetUserId(User))
+            if (template == null)
                 return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
+
+            if (isCreator && template.AuthorId != user.Id)
+                return Forbid(); // ✅ Prevents Creators from editing others' templates
 
             return View(template);
         }
 
-        // Edit Template (POST)
         [HttpPost]
+        [Authorize(Roles = "Admin,Creator")]
         public async Task<IActionResult> Edit(int id, Template template)
         {
             if (id != template.Id) return NotFound();
 
+            var existingTemplate = await _context.Templates.FindAsync(id);
+            if (existingTemplate == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
+
+            if (isCreator && existingTemplate.AuthorId != user.Id)
+                return Forbid(); // ✅ Prevents Creators from editing others' templates
+
             if (ModelState.IsValid)
             {
-                _context.Update(template);
+                existingTemplate.Title = template.Title;
+                existingTemplate.Description = template.Description;
+                _context.Update(existingTemplate);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(template);
         }
 
-        // Delete Template
+        // ✅ Delete Template (Only "Creator" can delete their own & Admin can delete any)
         [HttpPost]
+        [Authorize(Roles = "Admin,Creator")]
         public async Task<IActionResult> Delete(int id)
         {
             var template = await _context.Templates.FindAsync(id);
-            if (template == null || template.AuthorId != _userManager.GetUserId(User))
+            if (template == null)
                 return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
+
+            if (isCreator && template.AuthorId != user.Id)
+                return Forbid(); // ✅ Prevents Creators from deleting others' templates
 
             _context.Templates.Remove(template);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // Search Templates
+        // ✅ Search Templates (Everyone can search)
         public async Task<IActionResult> Search(string query)
         {
             if (string.IsNullOrEmpty(query))
@@ -102,11 +161,12 @@ namespace QuizFormsApp.Controllers
             return View(results);
         }
 
-        // Analytics
+        // ✅ Analytics (Only Admin can access)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Analytics(int templateId)
         {
             var template = await _context.Templates
-                .Include(t => t.Questions) 
+                .Include(t => t.Questions)
                 .FirstOrDefaultAsync(t => t.Id == templateId);
 
             if (template == null)
@@ -114,9 +174,8 @@ namespace QuizFormsApp.Controllers
 
             var analytics = new Dictionary<string, object>();
 
-            foreach (var question in template.Questions.Where(q => q.Type == QuestionType.Integer))  // ✅ FIXED ENUM COMPARISON
+            foreach (var question in template.Questions.Where(q => q.Type == QuestionType.Integer))
             {
-                // ✅ Fetch answers correctly from the database
                 var values = _context.Answers
                     .Where(a => a.QuestionId == question.Id)
                     .Select(a => int.Parse(a.Value))
@@ -135,5 +194,7 @@ namespace QuizFormsApp.Controllers
 
             return View(analytics);
         }
+
+        
     }
 }

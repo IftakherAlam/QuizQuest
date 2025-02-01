@@ -57,9 +57,15 @@
 
 /* ✅ Main Content: Adjust when Sidebar Expands */
 .admin-content {
-    margin-left: 60px;
-    transition: margin-left 0.3s ease-in-out;
+    flex: 1; /* Pushes the footer down */
     padding: 20px;
+    margin-left: 60px; /* Matches the collapsed sidebar width */
+    transition: margin-left 0.3s ease-in-out;
+}
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensures full height */
 }
 
 #adminSidebar.expanded ~ .admin-content {
@@ -72,7 +78,7 @@
     color: white;
     padding: 20px 0;
     text-align: center;
-    margin-top: 30px;
+    margin-top: auto; /* Pushes footer down */
 }
 
 /* ✅ Mobile: Sidebar Always Open */
@@ -84,4 +90,11 @@
     .admin-content {
         margin-left: 250px;
     }
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
 }

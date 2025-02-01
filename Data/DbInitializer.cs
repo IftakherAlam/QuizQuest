@@ -11,7 +11,7 @@ namespace QuizFormsApp.Data
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             // Create roles if they do not exist
-            string[] roleNames = { "Admin", "User" };
+            string[] roleNames = { "Admin", "Creator","User" };
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))

@@ -1,16 +1,31 @@
 @model QuizFormsApp.Models.Template
 
-<h2>Create Template</h2>
+@{
+    ViewData["Title"] = "Create Template";
+}
 
-<form asp-action="Create" method="post">
-    <label>Title</label>
-    <input asp-for="Title" class="form-control" required />
+<h2>Create New Template</h2>
 
-    <label>Description</label>
-    <textarea asp-for="Description" class="form-control"></textarea>
+<form asp-controller="Template" asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input asp-for="Title" class="form-control" required />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
 
-    <label>Public</label>
-    <input type="checkbox" asp-for="IsPublic" />
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
 
-    <button type="submit" class="btn btn-success mt-3">Save</button>
+    <div class="mb-3">
+        <label class="form-label">Is Public?</label>
+        <input asp-for="IsPublic" type="checkbox" class="form-check-input" id="publicCheckbox" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create</button>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

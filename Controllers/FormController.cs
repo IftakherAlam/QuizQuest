@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using QuizFormsApp.Data;
 using QuizFormsApp.Models;
 using QuizFormsApp.ViewModels;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace QuizFormsApp.Controllers
 {
@@ -20,15 +22,21 @@ namespace QuizFormsApp.Controllers
             _userManager = userManager;
         }
 
-        // Show Form for Submission
+        // ✅ Show Form for Submission (Merged Logic)
         public async Task<IActionResult> Fill(int templateId)
         {
             var template = await _context.Templates
                 .Include(t => t.Questions)
+                .Include(t => t.AllowedUsers) // ✅ Load allowed users for access control
                 .FirstOrDefaultAsync(t => t.Id == templateId);
 
             if (template == null)
                 return NotFound();
+
+            // ✅ Check if user has access
+            var user = await _userManager.GetUserAsync(User);
+            if (!template.IsPublic && !template.AllowedUsers.Any(u => u.UserId == user.Id))
+                return Forbid();
 
             var viewModel = new FormViewModel
             {
@@ -45,7 +53,7 @@ namespace QuizFormsApp.Controllers
             return View(viewModel);
         }
 
-        // Submit Form
+        // ✅ Submit Form
         [HttpPost]
         public async Task<IActionResult> Submit(FormViewModel model)
         {
@@ -76,7 +84,7 @@ namespace QuizFormsApp.Controllers
             return RedirectToAction("MySubmissions");
         }
 
-        // Show User's Submitted Forms
+        // ✅ Show User's Submitted Forms
         public async Task<IActionResult> MySubmissions()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -88,7 +96,7 @@ namespace QuizFormsApp.Controllers
             return View(forms);
         }
 
-        // View Filled-Out Form
+        // ✅ View Filled-Out Form
         public async Task<IActionResult> View(int formId)
         {
             var form = await _context.Forms

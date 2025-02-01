@@ -24,7 +24,7 @@ namespace QuizFormsApp.Models
 
         public bool IsInTable { get; set; } = false;
 
-        public int OrderIndex { get; set; }
+        public int OrderIndex { get; set; } // ✅ Drag & Drop Order
     }
 
     public enum QuestionType
