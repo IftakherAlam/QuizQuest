@@ -134,5 +134,28 @@ namespace QuizFormsApp.Controllers
             }
             return RedirectToAction("ManageUsers");
         }
+
+         [HttpPost]
+        public async Task<IActionResult> MakeUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null && !await _userManager.IsInRoleAsync(user, "User"))
+            {
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+            return RedirectToAction("ManageUsers");
+        }
+
+        // ✅ Remove "Creator" Role
+        [HttpPost]
+        public async Task<IActionResult> RemoveUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null && await _userManager.IsInRoleAsync(user, "User"))
+            {
+                await _userManager.RemoveFromRoleAsync(user, "User");
+            }
+            return RedirectToAction("ManageUsers");
+        }
     }
 }

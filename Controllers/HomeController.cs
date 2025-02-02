@@ -38,5 +38,19 @@ namespace QuizFormsApp.Controllers
 
             return View(topTemplates); // ✅ Regular users see normal homepage
         }
+         // ✅ View Template Details & Redirect to Form Fill Page
+       public async Task<IActionResult> Details(int id)
+{
+    var template = await _context.Templates
+        .Include(t => t.Questions)
+        .FirstOrDefaultAsync(t => t.Id == id);
+
+    if (template == null)
+    {
+        return NotFound();  // ✅ Prevents redirecting with a null template
+    }
+
+    return RedirectToAction("Fill", "Form", new { templateId = id });
+}
     }
 }

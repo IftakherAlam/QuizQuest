@@ -47,9 +47,14 @@ using (var scope = app.Services.CreateScope())
 // Middleware
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Home/Error");  // ❌ This hides detailed errors
     app.UseHsts();
 }
+else
+{
+    app.UseDeveloperExceptionPage();  // ✅ This shows detailed errors
+}
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -60,6 +65,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 app.MapRazorPages(); // ✅ Ensure Identity UI Pages are mapped
 

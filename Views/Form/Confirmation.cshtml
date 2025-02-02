@@ -1,0 +1,47 @@
+@model QuizFormsApp.Models.Form
+
+@{
+    ViewData["Title"] = "Form Submitted!";
+}
+
+<div class="container mt-4">
+    <div class="alert alert-success">
+        <h4>✅ Your responses have been successfully submitted!</h4>
+        <p>Thank you for filling out the form.</p>
+    </div>
+
+    <h3>@Model.Template.Title</h3>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Question</th>
+                <th>Your Answer</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var answer in Model.Answers)
+            {
+                <tr>
+                    <td>@answer.Question.Text</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(answer.TextValue))
+                        {
+                            @answer.TextValue
+                        }
+                        else if (answer.IntegerValue.HasValue)
+                        {
+                            @answer.IntegerValue
+                        }
+                        else if (answer.BooleanValue.HasValue)
+                        {
+                            @(answer.BooleanValue.Value ? "✔ Yes" : "❌ No")
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <a asp-action="Index" asp-controller="Home" class="btn btn-primary">Back to Home</a>
+</div>

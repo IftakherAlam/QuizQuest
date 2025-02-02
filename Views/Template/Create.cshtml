@@ -22,6 +22,11 @@
         <label class="form-label">Is Public?</label>
         <input asp-for="IsPublic" type="checkbox" class="form-check-input" id="publicCheckbox" />
     </div>
+    <div class="mb-3">
+    <label class="form-label">Select Users (for private templates)</label>
+    <input type="text" id="userSearch" class="form-control" placeholder="Search users by name or email..." />
+    <ul id="userList" class="list-group mt-2"></ul>
+    </div>
 
     <button type="submit" class="btn btn-primary">Create</button>
 </form>

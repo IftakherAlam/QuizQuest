@@ -22,5 +22,9 @@ namespace QuizFormsApp.Models
 
         [Required]
         public string Value { get; set; } = string.Empty;
+
+        public string? TextValue { get; set; }  // For SingleLineText & MultiLineText
+        public int? IntegerValue { get; set; }  // For Integer Questions
+        public bool? BooleanValue { get; set; } // For Checkbox Questions
     }
 }
