@@ -20,17 +20,49 @@ namespace QuizFormsApp.Controllers
             _context = context;
             _userManager = userManager;
         }
+[HttpPost]
+public async Task<IActionResult> EditQuestion(int questionId, int templateId, string text, string description, QuestionType type, bool isInTable)
+{
+    var question = await _context.Questions.FindAsync(questionId);
+    if (question == null)
+    {
+        TempData["ErrorMessage"] = "❌ Question not found!";
+        return RedirectToAction("AddQuestions", new { templateId });
+    }
+
+    question.Text = text;
+    question.Description = description;
+    question.Type = type;
+    question.IsInTable = isInTable;
+
+    _context.Questions.Update(question);
+    await _context.SaveChangesAsync();
+
+    TempData["SuccessMessage"] = "✅ Question updated successfully!";
+
+    // ✅ Stay on the same page
+    return RedirectToAction("AddQuestions", "Question", new { templateId });
+}
+
+
+
 
         // ✅ View: Add Questions to a Template
         public async Task<IActionResult> AddQuestions(int templateId)
-        {
-            var template = await _context.Templates.Include(t => t.Questions)
-                .FirstOrDefaultAsync(t => t.Id == templateId);
+{
+    var template = await _context.Templates
+        .Include(t => t.Questions)
+        .FirstOrDefaultAsync(t => t.Id == templateId);
 
-            if (template == null) return NotFound();
+    if (template == null)
+    {
+        TempData["ErrorMessage"] = "❌ Template not found!";
+        return RedirectToAction("Index", "Template");
+    }
 
-            return View(template);
-        }
+    return View(template);
+}
+
 
         // ✅ Add a New Question (AJAX)
         [HttpPost]

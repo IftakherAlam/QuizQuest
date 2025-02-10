@@ -101,31 +101,50 @@ public async Task<IActionResult> Create(Template template)
             return View(template);
         }
 
-        [HttpPost]
-        [Authorize(Roles = "Admin,Creator")]
-        public async Task<IActionResult> Edit(int id, Template template)
+     [HttpPost]
+[Authorize(Roles = "Admin,Creator")]
+public async Task<IActionResult> Edit(int id, Template template)
+{
+    if (id != template.Id) return NotFound();
+
+    var existingTemplate = await _context.Templates
+        .Include(t => t.Questions)  // ✅ Ensure questions are included
+        .FirstOrDefaultAsync(t => t.Id == id);
+
+    if (existingTemplate == null) return NotFound();
+
+    var user = await _userManager.GetUserAsync(User);
+    bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
+
+    if (isCreator && existingTemplate.AuthorId != user.Id)
+        return Forbid(); // ✅ Prevents Creators from editing others' templates
+
+    if (ModelState.IsValid)
+    {
+        existingTemplate.Title = template.Title;
+        existingTemplate.Description = template.Description;
+
+        // ✅ Update Questions
+        foreach (var updatedQuestion in template.Questions)
         {
-            if (id != template.Id) return NotFound();
-
-            var existingTemplate = await _context.Templates.FindAsync(id);
-            if (existingTemplate == null) return NotFound();
-
-            var user = await _userManager.GetUserAsync(User);
-            bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
-
-            if (isCreator && existingTemplate.AuthorId != user.Id)
-                return Forbid(); // ✅ Prevents Creators from editing others' templates
-
-            if (ModelState.IsValid)
+            var existingQuestion = existingTemplate.Questions.FirstOrDefault(q => q.Id == updatedQuestion.Id);
+            if (existingQuestion != null)
             {
-                existingTemplate.Title = template.Title;
-                existingTemplate.Description = template.Description;
-                _context.Update(existingTemplate);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                existingQuestion.Text = updatedQuestion.Text;
+                existingQuestion.Description = updatedQuestion.Description;
+                existingQuestion.Type = updatedQuestion.Type;
+                existingQuestion.IsInTable = updatedQuestion.IsInTable;
             }
-            return View(template);
         }
+
+        _context.Update(existingTemplate);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+    }
+
+    return View(template);
+}
+
 
         // ✅ Delete Template (Only "Creator" can delete their own & Admin can delete any)
         [HttpPost]

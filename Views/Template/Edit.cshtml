@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Edit Template";
+    var questionsList = Model.Questions.ToList(); // Convert to list for indexing
 }
 
 <h2>Edit Template</h2>
@@ -19,5 +20,51 @@
         <textarea asp-for="Description" class="form-control"></textarea>
     </div>
 
-    <button type="submit" class="btn btn-success">Save Changes</button>
+    <h3>Edit Questions</h3>
+
+    @if (questionsList.Any())
+    {
+        <ul class="list-group">
+            @for (int i = 0; i < questionsList.Count; i++)
+            {
+                var question = questionsList[i];
+
+                <li class="list-group-item">
+                    <input type="hidden" name="Questions[@i].Id" value="@question.Id" />
+                    <input type="hidden" name="Questions[@i].TemplateId" value="@Model.Id" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Question Text</label>
+                        <input type="text" name="Questions[@i].Text" class="form-control" value="@question.Text" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="Questions[@i].Description" class="form-control">@question.Description</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Type</label>
+                        <select name="Questions[@i].Type" class="form-select">
+                            <option value="0" selected="@(question.Type == QuestionType.SingleLineText)">Single-Line Text</option>
+                            <option value="1" selected="@(question.Type == QuestionType.MultiLineText)">Multi-Line Text</option>
+                            <option value="2" selected="@(question.Type == QuestionType.Integer)">Integer</option>
+                            <option value="3" selected="@(question.Type == QuestionType.Checkbox)">Checkbox</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="Questions[@i].IsInTable" class="form-check-input" @(question.IsInTable ? "checked" : "") />
+                        <label class="form-check-label">Show in Results Table</label>
+                    </div>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-danger">❌ No questions found for this template!</p>
+    }
+
+    <button type="submit" class="btn btn-success mt-3">Save Changes</button>
 </form>
