@@ -33,5 +33,7 @@ namespace QuizFormsApp.Models
         // ✅ Re-add SearchVector
         [Column(TypeName = "tsvector")]
         public string? SearchVector { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

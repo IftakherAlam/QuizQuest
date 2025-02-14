@@ -25,10 +25,64 @@ namespace QuizFormsApp.Controllers
         }
 
         // ✅ Admin Dashboard
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // ✅ Fetch Stats for Dashboard
+            ViewBag.TotalUsers = await _userManager.Users.CountAsync();
+            ViewBag.TotalTemplates = await _context.Templates.CountAsync();
+            ViewBag.TotalForms = await _context.Answers.CountAsync(); // Assuming `Answers` store form submissions
+            
+            // ✅ Fetch Recent Templates
+            ViewBag.RecentTemplates = await _context.Templates
+                .Include(t => t.Author)
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            // ✅ User Growth Data (Last 7 Days)
+            var last7Days = Enumerable.Range(0, 7)
+                .Select(i => DateTime.UtcNow.Date.AddDays(-i))
+                .OrderBy(date => date)
+                .ToList();
+
+            var userCounts = new List<int>();
+
+            foreach (var day in last7Days)
+            {
+                int count = await _userManager.Users.CountAsync(u => u.CreatedAt.Date == day);
+                userCounts.Add(count);
+            }
+
+            ViewBag.Days = last7Days.Select(d => d.ToString("MM/dd"));
+            ViewBag.UserCounts = userCounts;
+
             return View();
         }
+
+
+        // ✅ View All Templates
+public async Task<IActionResult> ManageTemplates()
+{
+    var templates = await _context.Templates
+        .Include(t => t.Author)
+        .ToListAsync();
+
+    return View(templates);
+}
+
+// ✅ Delete Template
+[HttpPost]
+public async Task<IActionResult> DeleteTemplate(int id)
+{
+    var template = await _context.Templates.FindAsync(id);
+    if (template == null) return NotFound();
+
+    _context.Templates.Remove(template);
+    await _context.SaveChangesAsync();
+
+    TempData["SuccessMessage"] = "✅ Template deleted successfully!";
+    return RedirectToAction("ManageTemplates");
+}
 
         // ✅ View All Users
         public async Task<IActionResult> ManageUsers()

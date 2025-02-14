@@ -1,0 +1,41 @@
+@model IEnumerable<QuizFormsApp.Models.Template>
+
+@{
+    ViewData["Title"] = "Manage Templates";
+}
+
+<h2>Manage Templates</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Public</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var template in Model)
+        {
+            <tr>
+                <td>@template.Title</td>
+                <td>@(template.Author?.DisplayName ?? "Unknown")</td>
+                <td>@(template.IsPublic ? "Yes" : "No")</td>
+                <td>
+                    <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-info btn-sm">View</a>
+                    <a asp-controller="Template" asp-action="Edit" asp-route-id="@template.Id" class="btn btn-warning btn-sm">Edit</a>
+                    
+                    <form asp-controller="Admin" asp-action="DeleteTemplate" asp-route-id="@template.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this template?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

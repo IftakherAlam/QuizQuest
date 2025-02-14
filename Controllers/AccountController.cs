@@ -50,11 +50,16 @@ namespace QuizFormsApp.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+            var user = new ApplicationUser { UserName = model.Email, Email = model.Email,  CreatedAt = DateTime.UtcNow, DisplayName = model.DisplayName, };
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
+                if(!await _userManager.IsInRoleAsync(user,"User"))
+                {
+                    await _userManager.AddToRoleAsync(user,"User");
+                    
+                }
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }

@@ -15,66 +15,70 @@
 </head>
 
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #586a7c ;">
+    <!-- ✅ Header -->
+    <header class="admin-header">
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #586a7c;">
             <div class="container-fluid">
                 
-                <a class="navbar-brand ms-2" asp-controller="Admin" asp-action="Index">Admin Panel</a>
+                <!-- ✅ Sidebar Toggle Button -->
+                <button id="sidebarToggle" class="btn btn-secondary me-2">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <a class="navbar-brand" asp-controller="Admin" asp-action="Index">Admin Panel</a>
 
                 <!-- ✅ Right-Aligned Buttons -->
                 <div class="btn-group ms-auto">
-                     <button class="btn btn-secondary" id="themeToggle">
-                        <i id="themeIcon" class="fas fa-moon"></i> <!-- Default Icon -->
-                   <button>
-                   <form method="post" asp-controller="Account" asp-action="Logout">
+                    <button class="btn btn-secondary" id="themeToggle">
+                        <i id="themeIcon" class="fas fa-moon"></i>
+                    </button>
+                    <form method="post" asp-controller="Account" asp-action="Logout">
                         <button type="submit" class="btn btn-danger">Logout</button>
                     </form>
-
                 </div>
             </div>
         </nav>
     </header>
 
-    <!-- ✅ Sidebar (Initially Hidden, Toggle with JS) -->
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="adminSidebar" class="d-md-block sidebar">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" asp-controller="Admin" asp-action="Index">
-                            <i class="fas fa-home"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Admin" asp-action="ManageUsers">
-                            <i class="fas fa-users"></i> Manage Users
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Admin" asp-action="ManageTemplates">
-                            <i class="fas fa-file-alt"></i> Manage Templates
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Admin" asp-action="Analytics">
-                            <i class="fas fa-chart-line"></i> Analytics
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+    <!-- ✅ Sidebar & Content Wrapper (After Header, Before Footer) -->
+    <div class="admin-wrapper">
+        <!-- ✅ Sidebar (Fixed & Scrollable) -->
+        <nav id="adminSidebar" class="sidebar">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" asp-controller="Admin" asp-action="Index">
+                        <i class="fas fa-home"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="ManageUsers">
+                        <i class="fas fa-users"></i> <span>Manage Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="ManageTemplates">
+                        <i class="fas fa-file-alt"></i> <span>Manage Templates</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Admin" asp-action="Analytics">
+                        <i class="fas fa-chart-line"></i> <span>Analytics</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-            <!-- ✅ Main Content -->
-            <main class="admin-content col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="admin-header">
-                    <h1 class="h2">@ViewData["Title"]</h1>
-                </div>
-                <div>
-                    @RenderBody()
-                </div>
-            </main>
-        </div>
+        <!-- ✅ Main Content -->
+        <main class="admin-content">
+            <div class="admin-header">
+            </div>
+            <div>
+                @RenderBody()
+            </div>
+        </main>
     </div>
 
+    <!-- ✅ Footer (Does NOT Overlap) -->
     <footer class="admin-footer">
         <p>&copy; @DateTime.Now.Year - Admin Panel | QuizQuest</p>
     </footer>
@@ -82,6 +86,19 @@
     <!-- ✅ Bootstrap & Custom Scripts -->
     <script src="~/js/theme.js"></script>
     <script src="~/js/admin.js"></script>
+
+    <!-- ✅ Sidebar Toggle Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById("adminSidebar");
+            const sidebarToggle = document.getElementById("sidebarToggle");
+
+            sidebarToggle.addEventListener("click", function () {
+                sidebar.classList.toggle("expanded");
+            });
+        });
+    </script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>

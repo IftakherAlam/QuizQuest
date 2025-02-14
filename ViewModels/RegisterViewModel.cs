@@ -5,6 +5,10 @@ namespace QuizFormsApp.ViewModels
     public class RegisterViewModel
     {
         [Required]
+        [Display(Name = "Full Name")] // ✅ Add label for UI
+        public string DisplayName { get; set; }  // ✅ Add this line
+
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
 

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace QuizFormsApp.Controllers
 {
-    [Authorize]
+
     public class TemplateController : Controller
     {
         private readonly AppDbContext _context;
@@ -30,23 +30,40 @@ namespace QuizFormsApp.Controllers
             return View(templates);
         }
          // ✅ View Template Details
-        public async Task<IActionResult> Details(int id)
-        {
-            var template = await _context.Templates
-                .Include(t => t.Author)
-                .Include(t => t.Questions)
-                .Include(t => t.AllowedUsers)
-                .FirstOrDefaultAsync(t => t.Id == id);
+     public async Task<IActionResult> Details(int id)
+{
+    var template = await _context.Templates
+        .Include(t => t.Author)
+        .Include(t => t.Questions)
+        .Include(t => t.AllowedUsers)
+        .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (template == null) return NotFound();
+    if (template == null)
+        return NotFound();
 
-            // ✅ Check if user has access
-            var user = await _userManager.GetUserAsync(User);
-            if (!template.IsPublic && !template.AllowedUsers.Any(u => u.UserId == user.Id))
-                return Forbid();
+    // ✅ Allow everyone to view Public Templates
+    if (template.IsPublic)
+        return View(template);
 
-            return View(template);
-        }
+    // ✅ Restricted templates require login
+    if (!User.Identity.IsAuthenticated)
+    {
+        TempData["ErrorMessage"] = "You must be logged in to access this template.";
+        return RedirectToAction("Login", "Account");
+    }
+
+    // ✅ Only allow users with access (Admin always has access)
+    var user = await _userManager.GetUserAsync(User);
+    if (!template.AllowedUsers.Any(u => u.UserId == user.Id) && !User.IsInRole("Admin"))
+    {
+        TempData["ErrorMessage"] = "You do not have permission to view this template.";
+        return RedirectToAction("Index", "Home"); // Redirect to home with an error message
+    }
+
+    return View(template);
+}
+
+
         // ✅ Create Template (Only "Creator" & "Admin" roles can access)
           [Authorize(Roles = "Admin,Creator")]
         public IActionResult Create()
@@ -57,7 +74,7 @@ namespace QuizFormsApp.Controllers
 [HttpPost]
 [ValidateAntiForgeryToken]
 [Authorize(Roles = "Admin,Creator")]
-public async Task<IActionResult> Create(Template template)
+public async Task<IActionResult> Create(Template template, string selectedUsers)
 {
     var user = await _userManager.GetUserAsync(User);
     
@@ -67,6 +84,28 @@ public async Task<IActionResult> Create(Template template)
     }
 
     template.AuthorId = user.Id;
+
+    // Ensure the creator is always added to the allowed users list
+    template.AllowedUsers = new List<TemplateUser>
+    {
+        new TemplateUser { UserId = user.Id, TemplateId = template.Id } // ✅ Add Creator
+    };
+
+    // ✅ Add Selected Users
+    if (!string.IsNullOrEmpty(selectedUsers))
+    {
+        var emails = selectedUsers.Split(",");
+        var users = await _userManager.Users.Where(u => emails.Contains(u.Email)).ToListAsync();
+
+        foreach (var selectedUser in users)
+        {
+            // Avoid adding the creator twice
+            if (selectedUser.Id != user.Id)
+            {
+                template.AllowedUsers.Add(new TemplateUser { UserId = selectedUser.Id, TemplateId = template.Id });
+            }
+        }
+    }
 
     ModelState.Remove("AuthorId");
     ModelState.Remove("Author");
@@ -165,6 +204,21 @@ public async Task<IActionResult> Edit(int id, Template template)
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        [HttpGet]
+public async Task<IActionResult> SearchUsers(string query)
+{
+    if (string.IsNullOrEmpty(query))
+        return BadRequest();
+
+    var users = await _userManager.Users
+        .Where(u => u.Email.Contains(query) || u.DisplayName.Contains(query))
+        .Select(u => new { u.Email, u.DisplayName })
+        .Take(10)
+        .ToListAsync();
+
+    return Json(users);
+}
+
 
         // ✅ Search Templates (Everyone can search)
         public async Task<IActionResult> Search(string query)

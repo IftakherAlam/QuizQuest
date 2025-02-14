@@ -14,6 +14,7 @@ namespace QuizFormsApp.Data
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<TemplateUser> TemplateUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

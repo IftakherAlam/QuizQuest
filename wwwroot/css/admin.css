@@ -1,23 +1,49 @@
-/* ✅ Sidebar: Initially Collapsed */
-#adminSidebar {
-    width: 60px;
-    position: relative;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    background-color: #5c7996;
-    color: white;
-    overflow-x: hidden;
-    transition: width 0.2s ease-in-out;
-    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+/* ✅ Base Layout */
+html, body {
+    height: 100%;
+    margin: 0;
 }
 
-/* ✅ Expanded Sidebar */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ✅ Admin Header */
+.admin-header {
+    background-color: #586a7c;
+    color: white;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* ✅ Admin Wrapper */
+.admin-wrapper {
+    display: flex;
+    flex: 1;
+}
+
+/* ✅ Sidebar */
+#adminSidebar {
+    width: 60px;
+    min-height: 100%;
+    position: sticky;
+    top: 0;
+    background-color: #5c7996;
+    color: white;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: width 0.3s ease-in-out;
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
 #adminSidebar.expanded {
     width: 250px;
 }
 
-/* ✅ Hide Sidebar Text When Collapsed */
+/* ✅ Sidebar Links */
 #adminSidebar .nav-link {
     color: white;
     padding: 10px;
@@ -28,7 +54,15 @@
     overflow: hidden;
 }
 
-/* ✅ Hide Text Inside the Sidebar When Collapsed */
+#adminSidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#adminSidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ✅ Hide Text When Sidebar is Collapsed */
 #adminSidebar:not(.expanded) .nav-link span {
     display: none;
 }
@@ -38,34 +72,16 @@
     font-size: 1.5rem;
     width: 40px;
     text-align: center;
+    margin-right: 10px;
 }
 
-/* ✅ Sidebar Toggle Icon */
-#sidebarToggle {
-    font-size: 1.5rem;
-    color: white;
-    cursor: pointer;
-    padding: 10px;
-    transition: color 0.3s ease-in-out;
-    margin-left: 10px;
-}
-
-/* ✅ Hide Sidebar Toggle when Expanded */
-#adminSidebar.expanded ~ #sidebarToggle {
-    display: none;
-}
-
-/* ✅ Main Content: Adjust when Sidebar Expands */
+/* ✅ Main Content */
 .admin-content {
-    flex: 1; /* Pushes the footer down */
+    flex: 1;
     padding: 20px;
-    margin-left: 60px; /* Matches the collapsed sidebar width */
+    margin-left: 60px;
     transition: margin-left 0.3s ease-in-out;
-}
-.admin-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Ensures full height */
+    background-color: #f8f9fa;
 }
 
 #adminSidebar.expanded ~ .admin-content {
@@ -76,25 +92,120 @@
 .admin-footer {
     background-color: #343a40;
     color: white;
-    padding: 20px 0;
+    padding: 15px 0;
     text-align: center;
-    margin-top: auto; /* Pushes footer down */
+    width: 100%;
 }
 
-/* ✅ Mobile: Sidebar Always Open */
+/* ✅ Navbar Customization */
+.navbar {
+    padding: 0.5rem 1rem;
+}
+
+.navbar-brand {
+    font-weight: 500;
+}
+
+/* ✅ Buttons */
+#sidebarToggle {
+    background-color: transparent;
+    border: none;
+    color: white;
+}
+
+#sidebarToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#themeToggle {
+    background-color: transparent;
+    border: none;
+    color: white;
+    margin-right: 10px;
+}
+
+#themeToggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ✅ Scrollbar Customization */
+#adminSidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+#adminSidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#adminSidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+/* ✅ Mobile Responsive Design */
 @media (max-width: 768px) {
     #adminSidebar {
+        position: fixed;
+        left: -250px;
         width: 250px;
     }
-    
+
+    #adminSidebar.expanded {
+        left: 0;
+    }
+
     .admin-content {
-        margin-left: 250px;
+        margin-left: 0 !important;
+        width: 100%;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+    
+    .btn-group {
+        display: flex;
+        gap: 5px;
     }
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
+/* ✅ Dark Theme Support */
+body.dark-theme {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+body.dark-theme .admin-content {
+    background-color: #2d2d2d;
+}
+
+body.dark-theme .navbar {
+    background-color: #333333 !important;
+}
+
+body.dark-theme .admin-footer {
+    background-color: #1a1a1a;
+}
+
+/* ✅ Utility Classes */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.rounded {
+    border-radius: 0.25rem;
+}
+
+/* ✅ Animation */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }

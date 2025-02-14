@@ -4,4 +4,84 @@
 }
 
 <h2>Welcome to the Admin Panel</h2>
-<p>Manage users, templates, and view analytics here.</p>
+
+<!-- ✅ Dashboard Summary Cards -->
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Users</div>
+            <div class="card-body">
+                <h3 class="card-title">@ViewBag.TotalUsers</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Total Templates</div>
+            <div class="card-body">
+                <h3 class="card-title">@ViewBag.TotalTemplates</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Total Forms Submitted</div>
+            <div class="card-body">
+                <h3 class="card-title">@ViewBag.TotalForms</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ✅ Recent Templates Table -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Latest Templates</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var template in ViewBag.RecentTemplates)
+                {
+                    <tr>
+                        <td>@template.Title</td>
+                        <td>@template.Author.DisplayName</td>
+                        <td>@template.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-info btn-sm">View</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+ <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-file-alt"></i> Latest Templates</h5>
+                <ul class="list-group list-group-flush">
+                    @foreach (var template in ViewBag.RecentTemplates)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>@template.Title</strong>
+                                <br><small class="text-muted">@template.CreatedAt.ToString("yyyy-MM-dd")</small>
+                                <br><small class="text-muted">@template.Author.DisplayName</small>
+                            </div>
+                            <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-info btn-sm">View</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
