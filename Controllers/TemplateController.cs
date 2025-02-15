@@ -30,7 +30,7 @@ namespace QuizFormsApp.Controllers
             return View(templates);
         }
          // ✅ View Template Details
-     public async Task<IActionResult> Details(int id)
+   public async Task<IActionResult> Details(int id)
 {
     var template = await _context.Templates
         .Include(t => t.Author)
@@ -41,14 +41,16 @@ namespace QuizFormsApp.Controllers
     if (template == null)
         return NotFound();
 
-    // ✅ Allow everyone to view Public Templates
+     Console.WriteLine($"Template ID: {id}, IsPublic: {template.IsPublic}");
+
+    // ✅ If the template is public, allow access without login
     if (template.IsPublic)
         return View(template);
 
-    // ✅ Restricted templates require login
+    // ✅ If the template is NOT public, require login
     if (!User.Identity.IsAuthenticated)
     {
-        TempData["ErrorMessage"] = "You must be logged in to access this template.";
+        TempData["ErrorMessage"] = "You must be logged in to access private templates.";
         return RedirectToAction("Login", "Account");
     }
 
@@ -56,12 +58,14 @@ namespace QuizFormsApp.Controllers
     var user = await _userManager.GetUserAsync(User);
     if (!template.AllowedUsers.Any(u => u.UserId == user.Id) && !User.IsInRole("Admin"))
     {
-        TempData["ErrorMessage"] = "You do not have permission to view this template.";
-        return RedirectToAction("Index", "Home"); // Redirect to home with an error message
+        TempData["ErrorMessage"] = "You do not have permission to view this private template.";
+        return RedirectToAction("Index", "Home");
     }
 
     return View(template);
 }
+
+
 
 
         // ✅ Create Template (Only "Creator" & "Admin" roles can access)
@@ -78,47 +82,58 @@ public async Task<IActionResult> Create(Template template, string selectedUsers)
 {
     var user = await _userManager.GetUserAsync(User);
     
+    
     if (user == null)
     {
         return Unauthorized();
     }
 
-    template.AuthorId = user.Id;
-
-    // Ensure the creator is always added to the allowed users list
-    template.AllowedUsers = new List<TemplateUser>
-    {
-        new TemplateUser { UserId = user.Id, TemplateId = template.Id } // ✅ Add Creator
-    };
-
-    // ✅ Add Selected Users
-    if (!string.IsNullOrEmpty(selectedUsers))
-    {
-        var emails = selectedUsers.Split(",");
-        var users = await _userManager.Users.Where(u => emails.Contains(u.Email)).ToListAsync();
-
-        foreach (var selectedUser in users)
-        {
-            // Avoid adding the creator twice
-            if (selectedUser.Id != user.Id)
-            {
-                template.AllowedUsers.Add(new TemplateUser { UserId = selectedUser.Id, TemplateId = template.Id });
-            }
-        }
-    }
-
+    // ✅ Ensure model state validation
     ModelState.Remove("AuthorId");
     ModelState.Remove("Author");
+    ModelState.Remove("AllowedUsers");
+    ModelState.Remove("selectedUsers");
 
     if (!ModelState.IsValid)
     {
+        TempData["ErrorMessage"] = "There are validation errors. Please check your input.";
         return View(template);
+    }
+
+    template.AuthorId = user.Id;
+
+    // ✅ Ensure IsPublic is correctly set
+    if (template.IsPublic)
+    {
+        template.AllowedUsers.Clear(); // Remove private users if public
+    }
+    else
+    {
+        // ✅ Add Selected Users (for private templates)
+        template.AllowedUsers = new List<TemplateUser> 
+        { 
+            new TemplateUser { UserId = user.Id, TemplateId = template.Id } // ✅ Ensure Creator is always added
+        };
+
+        if (!string.IsNullOrEmpty(selectedUsers))
+        {
+            var emails = selectedUsers.Split(",");
+            var users = await _userManager.Users.Where(u => emails.Contains(u.Email)).ToListAsync();
+
+            foreach (var selectedUser in users)
+            {
+                if (selectedUser.Id != user.Id)
+                {
+                    template.AllowedUsers.Add(new TemplateUser { UserId = selectedUser.Id, TemplateId = template.Id });
+                }
+            }
+        }
     }
 
     _context.Templates.Add(template);
     await _context.SaveChangesAsync();
 
-    // ✅ Redirect to Add Questions page after creating template
+    TempData["SuccessMessage"] = "Template created successfully!";
     return RedirectToAction("AddQuestions", "Question", new { templateId = template.Id });
 }
 

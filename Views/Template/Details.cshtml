@@ -34,7 +34,15 @@
 
 @if (User.Identity.IsAuthenticated)
 {
-    <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">Fill Out Form</a>
+    <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">
+        Fill Out Form
+    </a>
+}
+else
+{
+    <p class="alert alert-warning">
+        <strong>Note:</strong> You must <a asp-controller="Account" asp-action="Login">log in</a> to submit this form.
+    </p>
 }
 
 <a class="btn btn-info" asp-action="Analytics" asp-route-templateId="@Model.Id">View Analytics</a>

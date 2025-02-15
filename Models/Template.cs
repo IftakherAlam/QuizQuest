@@ -28,7 +28,8 @@ namespace QuizFormsApp.Models
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
-        public ICollection<TemplateUser> AllowedUsers { get; set; } = new List<TemplateUser>(); // ✅ Fixed missing AllowedUsers!
+        public ICollection<TemplateUser>? AllowedUsers { get; set; } = new List<TemplateUser>();
+ // ✅ Fixed missing AllowedUsers!
 
         // ✅ Re-add SearchVector
         [Column(TypeName = "tsvector")]
