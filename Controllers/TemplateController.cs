@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizFormsApp.Data;
 using QuizFormsApp.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,11 +70,20 @@ namespace QuizFormsApp.Controllers
 
 
         // ✅ Create Template (Only "Creator" & "Admin" roles can access)
-          [Authorize(Roles = "Admin,Creator")]
-        public IActionResult Create()
-        {
-            return View(new Template { Questions = new List<Question>() });
-        }
+[Authorize(Roles = "Admin,Creator")]
+public async Task<IActionResult> Create()
+{
+    var topics = await _context.Topics.ToListAsync();
+    
+    if (topics == null || !topics.Any())
+    {
+        TempData["ErrorMessage"] = "No topics found. Please add topics in the database.";
+        return RedirectToAction("Index"); // Redirect back to prevent errors
+    }
+
+    ViewBag.Topics = new SelectList(topics, "Id", "Name");
+    return View(new Template { Questions = new List<Question>() });
+}
 
 [HttpPost]
 [ValidateAntiForgeryToken]
@@ -87,15 +97,21 @@ public async Task<IActionResult> Create(Template template, string selectedUsers)
     {
         return Unauthorized();
     }
-
+    if (template.TopicId == 0)
+    {
+        ModelState.AddModelError("TopicId", "Please select a valid topic.");
+    }
     // ✅ Ensure model state validation
     ModelState.Remove("AuthorId");
     ModelState.Remove("Author");
     ModelState.Remove("AllowedUsers");
     ModelState.Remove("selectedUsers");
+    ModelState.Remove("Topic"); 
 
     if (!ModelState.IsValid)
     {
+        var topics = await _context.Topics.ToListAsync();
+        ViewBag.Topics = new SelectList(topics, "Id", "Name", template.TopicId);
         TempData["ErrorMessage"] = "There are validation errors. Please check your input.";
         return View(template);
     }

@@ -23,8 +23,11 @@ namespace QuizFormsApp.Models
 
         public string? ImageUrl { get; set; }
 
+        [Required(ErrorMessage = "Please select a topic")]
         public int TopicId { get; set; }
 
+        [ForeignKey("TopicId")]
+        public Topic Topic { get; set; }
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
