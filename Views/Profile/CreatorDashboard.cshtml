@@ -1,0 +1,26 @@
+@model List<QuizFormsApp.Models.Template>
+
+<h2>Creator Dashboard</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">You haven't created any templates yet.</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var template in Model)
+        {
+            <div class="list-group-item">
+                <h4>@template.Title</h4>
+                <p>@template.Description</p>
+                <p>
+                    <strong>Likes:</strong> @template.Likes.Count |
+                    <strong>Comments:</strong> @template.Comments.Count |
+                    <strong>Submissions:</strong> @(template.Forms != null ? template.Forms.Count : 0)
+                </p>
+                <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-primary btn-sm">View</a>
+            </div>
+        }
+    </div>
+}

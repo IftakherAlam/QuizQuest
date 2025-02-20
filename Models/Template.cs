@@ -28,6 +28,9 @@ namespace QuizFormsApp.Models
 
         [ForeignKey("TopicId")]
         public Topic Topic { get; set; }
+
+        public ICollection<Form> Forms { get; set; } = new List<Form>();
+
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();

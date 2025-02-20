@@ -32,6 +32,12 @@
         <textarea asp-for="Description" class="form-control"></textarea>
     </div>
 
+       <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input asp-for="ImageUrl" class="form-control" placeholder="Enter Image URL (Optional)" />
+        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+    </div>
+
 <div class="mb-3">
     <label asp-for="TopicId" class="form-label">Select Topic</label>
     <select asp-for="TopicId" asp-items="ViewBag.Topics" class="form-select">

@@ -1,0 +1,63 @@
+@model QuizFormsApp.Models.UserDashboardViewModel
+
+<h2>User Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Liked Templates</h3>
+        @if (!Model.LikedTemplates.Any())
+        {
+            <div class="alert alert-info">No liked templates yet.</div>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var template in Model.LikedTemplates)
+                {
+                    <li class="list-group-item">
+                        <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id">@template.Title</a>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <h3>Submitted Forms</h3>
+        @if (!Model.SubmittedForms.Any())
+        {
+            <div class="alert alert-info">No submitted forms yet.</div>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var form in Model.SubmittedForms)
+                {
+                    <li class="list-group-item">
+                        <a asp-controller="Template" asp-action="Details" asp-route-id="@form.Template.Id">@form.Template.Title</a> 
+                        - Submitted on @form.CreatedAt.ToString("yyyy-MM-dd")
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <h3>Comments</h3>
+        @if (!Model.Comments.Any())
+        {
+            <div class="alert alert-info">No comments made yet.</div>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var comment in Model.Comments)
+                {
+                    <li class="list-group-item">
+                        <strong>@comment.Template.Title:</strong> @comment.Text
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+</div>
