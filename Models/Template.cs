@@ -34,7 +34,7 @@ namespace QuizFormsApp.Models
         public ICollection<TemplateUser>? AllowedUsers { get; set; } = new List<TemplateUser>();
  // ✅ Fixed missing AllowedUsers!
 
-        // ✅ Re-add SearchVector
+        //  SearchVector
         [Column(TypeName = "tsvector")]
         public string? SearchVector { get; set; }
 

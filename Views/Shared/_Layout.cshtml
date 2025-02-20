@@ -33,7 +33,20 @@
                             <a class="nav-link" asp-controller="Form" asp-action="MySubmissions">My Submissions</a>
                         </li>
                         }
+                        
+                       
+                      
+
                     </ul>
+
+                 <form asp-controller="Template" asp-action="Search" method="get" class="d-flex me-3">
+    <div class="input-group">
+        <input type="text" name="query" class="form-control" placeholder="Search templates..." required>
+        <button type="submit" class="btn btn-primary">🔍</button>
+    </div>
+</form>
+
+
                     <ul class="navbar-nav">
                         <li class="nav-item">
                             <button class="btn btn-secondary" id="themeToggle">🌙</button>

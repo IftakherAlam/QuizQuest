@@ -252,18 +252,21 @@ public async Task<IActionResult> SearchUsers(string query)
 
 
         // ✅ Search Templates (Everyone can search)
-        public async Task<IActionResult> Search(string query)
-        {
-            if (string.IsNullOrEmpty(query))
-                return View(new List<Template>());
+[HttpGet]
+public async Task<IActionResult> Search(string query)
+{
+    if (string.IsNullOrEmpty(query))
+        return View(new List<Template>());
 
-            var results = await _context.Templates
-                .Where(t => EF.Functions.ToTsVector("english", t.SearchVector)
-                            .Matches(EF.Functions.PlainToTsQuery("english", query)))
-                .ToListAsync();
+    var results = await _context.Templates
+        .Where(t => t.Title.Contains(query) || t.Description.Contains(query))
+        .Include(t => t.Author) // ✅ Ensure Author data is loaded
+        .ToListAsync();
 
-            return View(results);
-        }
+    return View(results);
+}
+
+
 
         // ✅ Analytics (Only Admin can access)
         [Authorize(Roles = "Admin")]
