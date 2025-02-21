@@ -35,6 +35,8 @@ namespace QuizFormsApp.Models
         public ICollection<Like> Likes { get; set; } = new List<Like>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public ICollection<TemplateUser>? AllowedUsers { get; set; } = new List<TemplateUser>();
+        public ICollection<TemplateTag> TemplateTags { get; set; } = new List<TemplateTag>();
+
  // ✅ Fixed missing AllowedUsers!
 
         //  SearchVector

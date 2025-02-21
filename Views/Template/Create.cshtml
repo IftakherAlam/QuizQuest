@@ -32,6 +32,13 @@
         <textarea asp-for="Description" class="form-control"></textarea>
     </div>
 
+<div class="mb-3 position-relative">
+    <label class="form-label">Tags</label>
+    <input type="text" id="tagsInput" class="form-control" placeholder="Enter tags separated by commas" />
+    <div id="tagSuggestions" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 1000;"></div>
+</div>
+<input type="hidden" name="SelectedTags" id="selectedTags" />
+
        <div class="mb-3">
         <label class="form-label">Image URL</label>
         <input asp-for="ImageUrl" class="form-control" placeholder="Enter Image URL (Optional)" />
@@ -74,6 +81,116 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const tagsInput = document.getElementById('tagsInput');
+    const tagSuggestions = document.getElementById('tagSuggestions');
+    const selectedTagsInput = document.getElementById('selectedTags');
+    const tagContainer = document.createElement('div');
+    tagContainer.className = 'selected-tags-container d-flex flex-wrap gap-2 mb-2';
+    tagsInput.parentNode.insertBefore(tagContainer, tagsInput);
+    
+    let currentTags = [];
+    let timeoutId;
+
+    function createTagElement(tagName) {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'badge bg-primary d-flex align-items-center me-1 mb-1';
+        tagSpan.style.fontSize = '14px';
+        
+        const tagText = document.createElement('span');
+        tagText.textContent = tagName;
+        tagSpan.appendChild(tagText);
+
+        const removeButton = document.createElement('button');
+        removeButton.className = 'btn-close btn-close-white ms-2';
+        removeButton.style.fontSize = '8px';
+        removeButton.setAttribute('aria-label', 'Remove tag');
+        
+        removeButton.addEventListener('click', () => {
+            currentTags = currentTags.filter(tag => tag !== tagName);
+            updateSelectedTags();
+        });
+
+        tagSpan.appendChild(removeButton);
+        return tagSpan;
+    }
+
+    function updateSelectedTags() {
+        selectedTagsInput.value = currentTags.join(',');
+        tagContainer.innerHTML = '';
+        currentTags.forEach(tag => {
+            tagContainer.appendChild(createTagElement(tag));
+        });
+        tagsInput.value = ''; // Keep input clear for new tags
+        console.log("Updated Tags:", selectedTagsInput.value);
+    }
+
+    function addTag(tagName) {
+        const trimmedTag = tagName.trim();
+        if (trimmedTag && !currentTags.includes(trimmedTag)) {
+            currentTags.push(trimmedTag);
+            updateSelectedTags();
+        }
+    }
+
+    function showSuggestions(tags) {
+        tagSuggestions.innerHTML = '';
+        tags.forEach(tag => {
+            const div = document.createElement('div');
+            div.className = 'list-group-item list-group-item-action';
+            div.textContent = tag.name;
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', () => {
+                addTag(tag.name);
+                tagSuggestions.classList.add('d-none');
+            });
+            tagSuggestions.appendChild(div);
+        });
+        tagSuggestions.classList.remove('d-none');
+    }
+
+    tagsInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const query = this.value.trim();
+        
+        if (query.length > 0) {
+            timeoutId = setTimeout(() => {
+                fetch(`/Tag/GetTags?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(tags => {
+                        if (tags.length > 0) {
+                            showSuggestions(tags);
+                        } else {
+                            tagSuggestions.classList.add('d-none');
+                        }
+                    });
+            }, 300);
+        } else {
+            tagSuggestions.classList.add('d-none');
+        }
+    });
+
+    tagsInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            const tagValue = this.value.trim().replace(',', '');
+            if (tagValue) {
+                addTag(tagValue);
+            }
+        }
+    });
+
+    document.querySelector('form').addEventListener('submit', function () {
+        selectedTagsInput.value = currentTags.join(',');
+        console.log("Submitting Tags:", selectedTagsInput.value);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!tagsInput.contains(e.target) && !tagSuggestions.contains(e.target)) {
+            tagSuggestions.classList.add('d-none');
+        }
+    });
+});
         document.addEventListener("DOMContentLoaded", function () {
     let userSearch = document.getElementById("userSearch");
     let userList = document.getElementById("userList");
@@ -150,3 +267,22 @@
 });
     </script>
 }
+    <style>
+    .selected-tags-container {
+        min-height: 38px;
+        padding: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-bottom: 8px;
+    }
+
+    .selected-tags-container .badge {
+        padding: 6px 10px;
+    }
+
+    .selected-tags-container .btn-close {
+        padding: 0;
+        margin-left: 6px;
+    }
+</style>
+

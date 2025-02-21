@@ -1,7 +1,6 @@
 @model QuizFormsApp.Models.Template
 
 <h2>@Model.Title</h2>
-<p>@Model.Description</p>
 
 @if (!string.IsNullOrEmpty(Model.ImageUrl))
 {
@@ -10,31 +9,21 @@
     </div>
 }
 
-
-
 <p><strong>Created by:</strong> @Model.Author.DisplayName</p>
 <p><strong>Public:</strong> @(Model.IsPublic ? "Yes" : "No")</p>
+<p><strong>Description</strong></p>
+           
+            <div class="p-4 position-relative">
+            <p class="text-muted fs-5">@Model.Description</p>
+            </div>
 
-<h3>Questions</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Question</th>
-            <th>Type</th>
-            <th>Description</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var question in Model.Questions)
-        {
-            <tr>
-                <td>@question.Text</td>
-                <td>@question.Type</td>
-                <td>@question.Description</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<h3>Tags:</h3>
+<div>
+    @foreach (var tag in Model.TemplateTags.Select(tt => tt.Tag))
+    {
+        <a asp-action="Search" asp-route-query="@tag.Name" class="badge bg-secondary text-white text-decoration-none">@tag.Name</a>
+    }
+</div>
 
 @if (User.Identity.IsAuthenticated)
 {

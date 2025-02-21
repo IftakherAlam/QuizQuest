@@ -88,7 +88,7 @@ public async Task<IActionResult> Create()
 [HttpPost]
 [ValidateAntiForgeryToken]
 [Authorize(Roles = "Admin,Creator")]
-public async Task<IActionResult> Create(Template template, string selectedUsers)
+public async Task<IActionResult> Create(Template template, string selectedUsers, string SelectedTags)
 {
     var user = await _userManager.GetUserAsync(User);
     
@@ -107,6 +107,7 @@ public async Task<IActionResult> Create(Template template, string selectedUsers)
     ModelState.Remove("AllowedUsers");
     ModelState.Remove("selectedUsers");
     ModelState.Remove("Topic"); 
+    ModelState.Remove("SelectedTags");
 
     if (!ModelState.IsValid)
     {
@@ -116,7 +117,48 @@ public async Task<IActionResult> Create(Template template, string selectedUsers)
         return View(template);
     }
 
-    template.AuthorId = user.Id;
+     template.AuthorId = user.Id;
+
+    // ✅ Save template first so template.Id is generated
+    _context.Templates.Add(template);
+    await _context.SaveChangesAsync();  // ✅ Now template.Id is available
+
+     if (!string.IsNullOrEmpty(SelectedTags))
+    {
+        var tagNames = SelectedTags.Split(',').Select(t => t.Trim().ToLower()).Distinct().ToList();
+
+        List<TemplateTag> templateTagsToAdd = new List<TemplateTag>();
+
+        foreach (var tagName in tagNames)
+        {
+            var tag = await _context.Tags.FirstOrDefaultAsync(t => t.Name.ToLower() == tagName);
+            if (tag == null)
+            {
+                tag = new Tag { Name = tagName };
+                _context.Tags.Add(tag);
+                await _context.SaveChangesAsync(); // Save tag first
+            }
+
+            // ✅ Ensure duplicate TemplateTag is NOT added
+            var existingTemplateTag = await _context.TemplateTags
+                .FirstOrDefaultAsync(tt => tt.TemplateId == template.Id && tt.TagId == tag.Id);
+
+            if (existingTemplateTag == null)
+            {
+                templateTagsToAdd.Add(new TemplateTag
+                {
+                    TemplateId = template.Id,
+                    TagId = tag.Id
+                });
+            }
+        }
+        if (templateTagsToAdd.Count > 0)
+        {
+            _context.TemplateTags.AddRange(templateTagsToAdd); // ✅ Bulk Insert
+            await _context.SaveChangesAsync();
+        }
+    }
+
 
     // ✅ Ensure IsPublic is correctly set
     if (template.IsPublic)
@@ -145,9 +187,6 @@ public async Task<IActionResult> Create(Template template, string selectedUsers)
             }
         }
     }
-
-    _context.Templates.Add(template);
-    await _context.SaveChangesAsync();
 
     TempData["SuccessMessage"] = "Template created successfully!";
     return RedirectToAction("AddQuestions", "Question", new { templateId = template.Id });

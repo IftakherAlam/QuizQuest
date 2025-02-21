@@ -16,6 +16,8 @@ namespace QuizFormsApp.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<TemplateUser> TemplateUsers { get; set; }
         public DbSet<Topic> Topics { get; set; } // ✅ Add Topic DbSet
+        public DbSet<Tag> Tags { get; set; }
+        public DbSet<TemplateTag> TemplateTags { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -25,6 +27,19 @@ namespace QuizFormsApp.Data
             // ✅ IGNORE 'SearchVector' because EF Core doesn't support 'tsvector'
             builder.Entity<Template>()
                 .Ignore(t => t.SearchVector);
+
+            builder.Entity<TemplateTag>()
+                .HasKey(tt => new { tt.TemplateId, tt.TagId });
+
+            builder.Entity<TemplateTag>()
+                .HasOne(tt => tt.Template)
+                .WithMany(t => t.TemplateTags)
+                .HasForeignKey(tt => tt.TemplateId);
+
+            builder.Entity<TemplateTag>()
+                .HasOne(tt => tt.Tag)
+                .WithMany(t => t.TemplateTags)
+                .HasForeignKey(tt => tt.TagId);
 
             builder.Entity<Topic>().HasData(
                 new Topic { Id = 1, Name = "Education" },
