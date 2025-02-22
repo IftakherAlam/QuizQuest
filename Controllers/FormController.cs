@@ -104,7 +104,9 @@ public async Task<IActionResult> Fill(int templateId)
     {
         TemplateId = template.Id,
         TemplateTitle = template.Title,
-        Questions = template.Questions.Select(q => new AnswerViewModel
+        Questions = template.Questions
+          .OrderBy(q => q.OrderIndex)
+          .Select(q => new AnswerViewModel
         {
             QuestionId = q.Id,
             QuestionText = q.Text,

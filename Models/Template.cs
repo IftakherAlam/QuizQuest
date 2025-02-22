@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NpgsqlTypes;
 
 namespace QuizFormsApp.Models
 {
@@ -40,9 +41,12 @@ namespace QuizFormsApp.Models
  // ✅ Fixed missing AllowedUsers!
 
         //  SearchVector
-        [Column(TypeName = "tsvector")]
-        public string? SearchVector { get; set; }
+       [Column(TypeName = "tsvector")]
+        public NpgsqlTsVector? SearchVector { get; set; }
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+          // ✅ Helper method for search indexing (PostgreSQL)
     }
 }

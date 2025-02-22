@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="ManageUsers" xml:space="preserve">
+    <value>Manage Users</value>
+  </data>
+  <data name="ManageTemplates" xml:space="preserve">
+    <value>Manage Templates</value>
+  </data>
+  <data name="Search templates" xml:space="preserve">
+    <value>Search templates...</value>
+  </data>
+  <data name="Admin Panel" xml:space="preserve">
+    <value>Admin Panel</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+   <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="MySubmissions" xml:space="preserve">
+    <value>My Submissions</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Tablero</value>
+  </data>
+  <data name="MySubmissions" xml:space="preserve">
+    <value>Mis Envíos</value>
+  </data>
+</root>

@@ -25,8 +25,20 @@ namespace QuizFormsApp.Data
             
 
             // ✅ IGNORE 'SearchVector' because EF Core doesn't support 'tsvector'
-            builder.Entity<Template>()
-                .Ignore(t => t.SearchVector);
+             builder.Entity<Template>(entity =>
+        {
+            // Configure the computed column for full-text search
+            entity.Property(t => t.SearchVector)
+                .HasComputedColumnSql(
+                    "to_tsvector('english', coalesce(\"Title\", '') || ' ' || coalesce(\"Description\", ''))",
+                    stored: true);
+
+            // Create a GIN index on the SearchVector
+            entity.HasIndex(t => t.SearchVector)
+                .HasMethod("GIN");
+        });
+
+
 
             builder.Entity<TemplateTag>()
                 .HasKey(tt => new { tt.TemplateId, tt.TagId });

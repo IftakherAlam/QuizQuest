@@ -2,179 +2,174 @@
 
 @{
     ViewData["Title"] = "Edit Template";
-    var questionsList = Model.Questions.ToList();
+    var questionsList = Model.Questions.OrderBy(q => q.OrderIndex).ToList();
 }
-@if (!ViewData.ModelState.IsValid)
+
+<h2 class="mb-4 text-primary">✏ Edit Template - @Model.Title</h2>
+
+<!-- ✅ Show success or error messages -->
+@if (TempData["SuccessMessage"] != null)
 {
-    <div class="alert alert-danger">
-        <strong>Validation Errors:</strong>
-        <ul>
-            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-            {
-                <li>@error.ErrorMessage</li>
-            }
-        </ul>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<div class="container py-4">
-    <h2 class="mb-4 text-primary">Edit Template</h2>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="AuthorId" />
+    <input type="hidden" asp-for="TopicId" />
+    <input type="hidden" id="RequestVerificationToken" 
+       name="RequestVerificationToken" 
+       value="@Html.AntiForgeryToken()" />
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input asp-for="Title" class="form-control" required />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
 
-    <!-- ✅ Show success or error messages -->
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
 
-    <form asp-action="Edit" method="post">
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="AuthorId" />
-        <input type="hidden" asp-for="TopicId" />
-  
+    <div class="mb-3">
+        <label asp-for="TopicId" class="form-label">Topic</label>
+        <select asp-for="TopicId" asp-items="ViewBag.Topics" class="form-select" required>
+            <option value="">-- Select a Topic --</option>
+        </select>
+        <span asp-validation-for="TopicId" class="text-danger"></span>
+    </div>
 
+    <div class="mb-3">
+        <label class="form-label">Image URL</label>
+        <input asp-for="ImageUrl" class="form-control" placeholder="Enter Image URL" />
+        <span asp-validation-for="ImageUrl" class="text-danger"></span>
+    </div>
 
-
-        <div class="mb-3">
-            <label class="form-label">Title</label>
-            <input asp-for="Title" class="form-control" required />
-            <span asp-validation-for="Title" class="text-danger"></span>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea asp-for="Description" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-     <div class="mb-3">
-    <label asp-for="TopicId" class="form-label">Topic</label>
-    <select asp-for="TopicId" asp-items="ViewBag.Topics" class="form-select" required>
-        <option value="">-- Select a Topic --</option>
-    </select>
-    <span asp-validation-for="TopicId" class="text-danger"></span>
-</div>
+    <h3 class="mt-4 mb-3 text-secondary">📌 Drag & Drop to Reorder Questions</h3>
 
 
-   
-        <!-- ✅ Image URL Field -->
-        <div class="mb-3">
-            <label class="form-label">Image URL</label>
-            <input asp-for="ImageUrl" class="form-control" placeholder="Enter Image URL" />
-            <span asp-validation-for="ImageUrl" class="text-danger"></span>
-        </div>
-
-        <h3 class="mt-4 mb-3 text-secondary">Edit Questions</h3>
-
-        @if (questionsList.Any())
+@if (questionsList.Any())
+{
+    <ul id="sortable-questions" class="list-group">
+        @for (int i = 0; i < questionsList.Count; i++) // ✅ Use List instead of ICollection
         {
-            <ul class="list-group" id="question-list">
-                @for (int i = 0; i < questionsList.Count; i++)
-                {
-                    var question = questionsList[i];
+            <li class="list-group-item d-flex justify-content-between align-items-center" data-question-id="@questionsList[i].Id">
+                <span class="fw-bold">☰ @questionsList[i].Text</span>
 
-                    <li class="list-group-item d-flex justify-content-between align-items-center" id="question-@question.Id">
-                        <span class="fw-bold">@question.Text</span> 
+                <!-- Hidden Inputs to store updated order -->
+                <input type="hidden" name="Questions[@i].Id" value="@questionsList[i].Id" />
+                <input type="hidden" name="Questions[@i].OrderIndex" value="@questionsList[i].OrderIndex" />
 
-                        <div>
-                            <button type="button" class="btn btn-warning btn-sm me-2" onclick="toggleEdit(@i)">
-                                ✏ Edit
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="deleteQuestion(@question.Id)">
-                                🗑 Delete
-                            </button>
-                        </div>
-                    </li>
+                <div>
+                    <button type="button" class="btn btn-warning btn-sm me-2" onclick="toggleEdit(@i)">✏ Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteQuestion(@questionsList[i].Id)">🗑 Delete</button>
+                </div>
+            </li>
 
-                    <!-- Editable Section (Hidden by Default) -->
-                    <div id="edit-section-@i" class="mt-3 border rounded p-3 d-none">
-                        <input type="hidden" name="Questions[@i].Id" value="@question.Id" />
-                        <input type="hidden" name="Questions[@i].TemplateId" value="@Model.Id" />
+            <!-- Editable Section -->
+            <div id="edit-section-@i" class="mt-3 border rounded p-3 d-none">
+                <input type="hidden" name="Questions[@i].Id" value="@questionsList[i].Id" />
+                <input type="hidden" name="Questions[@i].TemplateId" value="@Model.Id" />
 
-                        <div class="mb-3">
-                            <label class="form-label">Question Text</label>
-                            <input type="text" name="Questions[@i].Text" class="form-control" value="@question.Text" required />
-                        </div>
+                <div class="mb-3">
+                    <label class="form-label">Question Text</label>
+                    <input type="text" name="Questions[@i].Text" class="form-control" value="@questionsList[i].Text" required />
+                </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="Questions[@i].Description" class="form-control">@questionsList[i].Description</textarea>
+                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea name="Questions[@i].Description" class="form-control">@question.Description</textarea>
-                        </div>
-    
+                <div class="mb-3">
+                    <label class="form-label">Type</label>
+                    <select name="Questions[@i].Type" class="form-select">
+                        <option value="0" selected="@(questionsList[i].Type == QuestionType.SingleLineText)">Single-Line Text</option>
+                        <option value="1" selected="@(questionsList[i].Type == QuestionType.MultiLineText)">Multi-Line Text</option>
+                        <option value="2" selected="@(questionsList[i].Type == QuestionType.Integer)">Integer</option>
+                        <option value="3" selected="@(questionsList[i].Type == QuestionType.Checkbox)">Checkbox</option>
+                    </select>
+                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Type</label>
-                            <select name="Questions[@i].Type" class="form-select">
-                                <option value="0" selected="@(question.Type == QuestionType.SingleLineText)">Single-Line Text</option>
-                                <option value="1" selected="@(question.Type == QuestionType.MultiLineText)">Multi-Line Text</option>
-                                <option value="2" selected="@(question.Type == QuestionType.Integer)">Integer</option>
-                                <option value="3" selected="@(question.Type == QuestionType.Checkbox)">Checkbox</option>
-                            </select>
-                        </div>
+                <div class="mb-3 form-check">
+                    <input type="hidden" name="Questions[@i].IsInTable" value="false" />
+                    <input type="checkbox" name="Questions[@i].IsInTable" class="form-check-input" value="true" @(questionsList[i].IsInTable ? "checked" : "") />
+                    <label class="form-check-label">Show in Results Table</label>
+                </div>
 
-                        <div class="mb-3 form-check">
-                        <input type="hidden" name="Questions[@i].IsInTable" value="false" />  <!-- Ensures unchecked sends false -->
-                        <input type="checkbox" name="Questions[@i].IsInTable" class="form-check-input" value="true" @(question.IsInTable ? "checked" : "") />
-                        <label class="form-check-label">Show in Results Table</label>
-                            </div>
-
-
-                        <button type="button" class="btn btn-success btn-sm" onclick="toggleEdit(@i)">
-                            ✅ Save
-                        </button>
-                    </div>
-                }
-            </ul>
+                <button type="button" class="btn btn-success btn-sm" onclick="toggleEdit(@i)">✅ Save</button>
+            </div>
         }
-        else
-        {
-            <p class="text-danger">❌ No questions found for this template!</p>
-        }
+    </ul>
+}
+else
+{
+    <p class="text-danger">❌ No questions found for this template!</p>
+}
 
-        <button type="submit" class="btn btn-success mt-3">Save Changes</button>
-    </form>
-</div>
+
+    <button type="submit" class="btn btn-success mt-3">💾 Save Changes</button>
+</form>
 
 @section Scripts {
-   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let sortable = new Sortable(document.getElementById("sortable-questions"), {
+                animation: 150,
+                onEnd: function () {
+                    let items = document.querySelectorAll("#sortable-questions li");
+                    items.forEach((item, index) => {
+                        let input = item.querySelector("input[name^='Questions'][name$='OrderIndex']");
+                        if (input) input.value = index;
+                    });
+                }
+            });
+        });
 
-    document.querySelector('form').addEventListener('submit', function(e) {
-        console.log("🚀 Submitting Form Data:", new FormData(this));
-    });
         function toggleEdit(index) {
             let editSection = document.getElementById("edit-section-" + index);
             editSection.classList.toggle("d-none");
         }
 
-       function deleteQuestion(questionId) {
+        function deleteQuestion(questionId) {
     if (!confirm("Are you sure you want to delete this question?")) return;
+
+    const token = document.querySelector("input[name='__RequestVerificationToken']").value;
 
     fetch(`/Question/Delete/${questionId}`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" }
+        headers: {
+            "Content-Type": "application/json",
+            "RequestVerificationToken": token
+        },
+        credentials: 'same-origin'
     })
     .then(response => {
         if (response.ok) {
-            document.getElementById(`question-${questionId}`).remove();
+            const questionElement = document.querySelector(`[data-question-id='${questionId}']`);
+            if (questionElement) {
+                questionElement.remove();
+            }
             alert("✅ Question deleted successfully!");
         } else {
-            alert("❌ Failed to delete question.");
+            return response.text().then(text => { throw new Error(text); });
         }
     })
     .catch(error => {
-        console.error("Error deleting question:", error);
-        alert("❌ Something went wrong.");
+        console.error("❌ Error deleting question:", error);
+        alert("❌ Failed to delete question. Please try again.");
     });
 }
 
@@ -183,6 +178,7 @@
 
 <style>
     .list-group-item {
+        cursor: grab;
         transition: all 0.3s ease;
     }
     .list-group-item:hover {

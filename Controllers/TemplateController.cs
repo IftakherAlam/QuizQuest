@@ -272,7 +272,6 @@ public async Task<IActionResult> Edit(int id, Template template)
         existingTemplate.Description = template.Description;
         existingTemplate.ImageUrl = template.ImageUrl;
         existingTemplate.TopicId = template.TopicId;
-        Console.WriteLine($"✅ Updating TopicId: {template.TopicId}");
 
         template.Author = existingTemplate.Author;
         
@@ -286,6 +285,7 @@ public async Task<IActionResult> Edit(int id, Template template)
                 existingQuestion.Text = updatedQuestion.Text;
                 existingQuestion.Description = updatedQuestion.Description;
                 existingQuestion.Type = updatedQuestion.Type;
+                 existingQuestion.OrderIndex = updatedQuestion.OrderIndex;
                 
                 existingQuestion.IsInTable = updatedQuestion.IsInTable;
 
@@ -372,14 +372,12 @@ public async Task<IActionResult> Search(string query)
     query = query.Trim();
 
     var results = await _context.Templates
-        .Where(t => EF.Functions.ToTsVector("english", t.SearchVector)
-                        .Matches(EF.Functions.PlainToTsQuery("english", query)))
+        .Where(t => t.SearchVector.Matches(EF.Functions.PlainToTsQuery("english", query)))
         .Include(t => t.Author)
         .ToListAsync();
 
     return View(results);
 }
-
 
 
 

@@ -5,6 +5,9 @@ using QuizFormsApp.Data;
 using QuizFormsApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace QuizFormsApp.Controllers
 {
@@ -38,6 +41,18 @@ namespace QuizFormsApp.Controllers
 
             return View(topTemplates); // ✅ Regular users see normal homepage
         }
+
+         [HttpPost]
+    public IActionResult SetLanguage(string culture)
+    {
+        Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+        );
+
+        return Redirect(Request.Headers["Referer"].ToString()); // Redirect back to the previous page
+    }
          // ✅ View Template Details & Redirect to Form Fill Page
        public async Task<IActionResult> Details(int id)
 {

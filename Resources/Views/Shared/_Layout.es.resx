@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Tablero</value>
+  </data>
+  <data name="ManageUsers" xml:space="preserve">
+    <value>Administrar usuarios</value>
+  </data>
+  <data name="ManageTemplates" xml:space="preserve">
+    <value>Administrar plantillas</value>
+  </data>
+  <data name="Search templates" xml:space="preserve">
+    <value>Buscar plantillas...</value>
+  </data>
+  <data name="Admin Panel" xml:space="preserve">
+    <value>Panel de administración</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
+</root>
