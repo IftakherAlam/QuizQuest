@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using QuizFormsApp.Data;
 using QuizFormsApp.Models;
+using QuizFormsApp.ViewModels;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Globalization;
 
 namespace QuizFormsApp.Controllers
@@ -22,7 +23,7 @@ namespace QuizFormsApp.Controllers
             _userManager = userManager;
         }
 
-        // ✅ Redirect Admins to the Admin Panel
+        // ✅ Home Page - Shows Different Views for Admins and Users
         public async Task<IActionResult> Index()
         {
             if (User.Identity.IsAuthenticated)
@@ -30,42 +31,68 @@ namespace QuizFormsApp.Controllers
                 var user = await _userManager.GetUserAsync(User);
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                 {
-                    return RedirectToAction("Index", "Admin"); // ✅ Redirect Admins
+                    return RedirectToAction("Index", "Admin"); // ✅ Redirect Admins to the Admin Panel
                 }
             }
 
+            // ✅ Fetch Latest 6 Templates for Gallery
+            var latestTemplates = await _context.Templates
+                .Include(t => t.Author)
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(6)
+                .ToListAsync();
+
+            // ✅ Fetch Top 5 Most Popular Templates (By Submissions)
             var topTemplates = await _context.Templates
-                .OrderByDescending(t => t.Likes.Count)
+                .Include(t => t.Author)
+                .Include(t => t.Forms)
+                .OrderByDescending(t => t.Forms.Count)
                 .Take(5)
                 .ToListAsync();
 
-            return View(topTemplates); // ✅ Regular users see normal homepage
+            // ✅ Fetch Top 10 Most Used Tags
+            var popularTags = await _context.Tags
+                .Include(t => t.TemplateTags)
+                .OrderByDescending(t => t.TemplateTags.Count)
+                .Take(10)
+                .ToListAsync();
+
+            var viewModel = new HomeViewModel
+            {
+                LatestTemplates = latestTemplates,
+                TopTemplates = topTemplates,
+                PopularTags = popularTags
+            };
+
+            return View(viewModel); // ✅ Pass Data to View
         }
 
-         [HttpPost]
-    public IActionResult SetLanguage(string culture)
-    {
-        Response.Cookies.Append(
-            CookieRequestCultureProvider.DefaultCookieName,
-            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
-            new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
-        );
+        // ✅ Language Selector
+        [HttpPost]
+        public IActionResult SetLanguage(string culture)
+        {
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+            );
 
-        return Redirect(Request.Headers["Referer"].ToString()); // Redirect back to the previous page
-    }
-         // ✅ View Template Details & Redirect to Form Fill Page
-       public async Task<IActionResult> Details(int id)
-{
-    var template = await _context.Templates
-        .Include(t => t.Questions)
-        .FirstOrDefaultAsync(t => t.Id == id);
+            return Redirect(Request.Headers["Referer"].ToString()); // Redirect to the previous page
+        }
 
-    if (template == null)
-    {
-        return NotFound();  // ✅ Prevents redirecting with a null template
-    }
+        // ✅ Redirects to the Form Fill Page for Selected Template
+        public async Task<IActionResult> Details(int id)
+        {
+            var template = await _context.Templates
+                .Include(t => t.Questions)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-    return RedirectToAction("Fill", "Form", new { templateId = id });
-}
+            if (template == null)
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction("Fill", "Form", new { templateId = id });
+        }
     }
 }

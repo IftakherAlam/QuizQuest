@@ -1,19 +1,68 @@
-﻿@{
+﻿@model QuizFormsApp.ViewModels.HomeViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
-<h3>Top 5 Most Liked Templates</h3>
-<div class="row">
-    @foreach (var template in Model)
-    {
-        <div class="col-md-4">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">@template.Title</h5>
-                    <p class="card-text">@template.Description</p>
-                    <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-info">View</a>
+<div class="container mt-4">
+    <!-- ✅ Latest Templates Gallery -->
+    <h3 class="mb-3">📌 Latest Templates</h3>
+    <div class="row">
+        @foreach (var template in Model.LatestTemplates)
+        {
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    @if (!string.IsNullOrEmpty(template.ImageUrl))
+                    {
+                        <img src="@template.ImageUrl" class="card-img-top" alt="Template Image" style="height: 180px; object-fit: cover;">
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@template.Title</h5>
+                        <p class="card-text text-muted">@template.Description</p>
+                        <p class="card-text"><strong>By:</strong> @template.Author.DisplayName</p>
+                        <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-info">📄 View</a>
+                    </div>
                 </div>
             </div>
-        </div>
-    }
+        }
+    </div>
+
+    <!-- ✅ Table of Top 5 Most Popular Templates -->
+    <h3 class="mt-4 mb-3">🔥 Top 5 Most Popular Templates</h3>
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>🏆 Rank</th>
+                <th>📌 Title</th>
+                <th>📝 Forms Submitted</th>
+                <th>👤 Author</th>
+                <th>🔍 View</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.TopTemplates.Count; i++)
+            {
+                var template = Model.TopTemplates[i];
+                <tr>
+                    <td><strong>#@(i + 1)</strong></td>
+                    <td>@template.Title</td>
+                    <td>@template.Forms.Count</td>
+                    <td>@template.Author.DisplayName</td>
+                    <td>
+                        <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-sm btn-primary">🔍 View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- ✅ Tag Cloud -->
+    <h3 class="mt-4 mb-3">🏷 Popular Tags</h3>
+    <div>
+        @foreach (var tag in Model.PopularTags)
+        {
+            <a asp-controller="Template" asp-action="Search" asp-route-query="@tag.Name" class="badge bg-secondary text-white m-1">
+                #@tag.Name (@tag.TemplateTags.Count)
+            </a>
+        }
+    </div>
 </div>

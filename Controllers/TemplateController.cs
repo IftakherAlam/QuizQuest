@@ -372,12 +372,19 @@ public async Task<IActionResult> Search(string query)
     query = query.Trim();
 
     var results = await _context.Templates
-        .Where(t => t.SearchVector.Matches(EF.Functions.PlainToTsQuery("english", query)))
         .Include(t => t.Author)
+        .Include(t => t.Questions)
+        .Include(t => t.TemplateTags)
+        .ThenInclude(tt => tt.Tag)
+        .Where(t =>
+            t.SearchVector.Matches(EF.Functions.PlainToTsQuery("english", query)) || // ✅ Full-text search (Title, Description, Questions)
+            t.TemplateTags.Any(tt => tt.Tag.Name.Contains(query)) // ✅ Search in Tags
+        )
         .ToListAsync();
 
     return View(results);
 }
+
 
 
 
