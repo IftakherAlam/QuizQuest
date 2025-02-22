@@ -1,6 +1,6 @@
 @model List<QuizFormsApp.Models.Template>
 
-<h2>Creator Dashboard</h2>
+<h2>👤 Creator Dashboard</h2>
 
 @if (!Model.Any())
 {
@@ -15,11 +15,19 @@ else
                 <h4>@template.Title</h4>
                 <p>@template.Description</p>
                 <p>
-                    <strong>Likes:</strong> @template.Likes.Count |
-                    <strong>Comments:</strong> @template.Comments.Count |
-                    <strong>Submissions:</strong> @(template.Forms != null ? template.Forms.Count : 0)
+                    <strong>👍 Likes:</strong> @template.Likes.Count |
+                    <strong>💬 Comments:</strong> @template.Comments.Count |
+                    <strong>📑 Submissions:</strong> @(template.Forms != null ? template.Forms.Count : 0)
                 </p>
-                <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-primary btn-sm">View</a>
+                
+                <div class="d-flex">
+                    <a asp-controller="Template" asp-action="Details" asp-route-id="@template.Id" class="btn btn-primary btn-sm me-2">
+                        🔍 View Template
+                    </a>
+                    <a asp-controller="Form" asp-action="CreatorSubmissions" asp-route-templateId="@template.Id" class="btn btn-info btn-sm">
+                        📑 View Submissions
+                    </a>
+                </div>
             </div>
         }
     </div>

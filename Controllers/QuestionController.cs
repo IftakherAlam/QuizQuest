@@ -99,5 +99,20 @@ public async Task<IActionResult> EditQuestion(int questionId, int templateId, st
 
             return RedirectToAction("AddQuestions", new { templateId });
         }
+
+[HttpDelete("Delete/{id}")]
+[HttpPost("Delete/{id}")]
+public async Task<IActionResult> Delete(int id)
+{
+    var question = await _context.Questions.FindAsync(id);
+    if (question == null)
+        return NotFound();
+
+    _context.Questions.Remove(question);
+    await _context.SaveChangesAsync();
+
+    return Ok(); // ✅ Response for successful deletion
+}
+
     }
 }

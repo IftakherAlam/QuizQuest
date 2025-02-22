@@ -12,7 +12,7 @@ namespace QuizFormsApp.Models
         public int TemplateId { get; set; }
 
         [ForeignKey("TemplateId")]
-        public Template Template { get; set; }
+        public Template? Template { get; set; }
 
         [Required, MaxLength(255)]
         public string Text { get; set; } = string.Empty;

@@ -1,0 +1,43 @@
+@model List<QuizFormsApp.Models.Form>
+
+@{
+    ViewData["Title"] = "All Form Submissions";
+}
+
+<h2>📑 All Form Submissions</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">No submissions have been made yet.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>📄 Template</th>
+                <th>👤 Creator</th>
+                <th>👥 Submitted By</th>
+                <th>📅 Submission Date</th>
+                <th>🔍 View</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var form in Model)
+            {
+                <tr>
+                    <td>@form.Template.Title</td>
+                    <td>@form.Template.Author.DisplayName (@form.Template.Author.Email)</td>
+                    <td>@form.User.DisplayName (@form.User.Email)</td>
+                    <td>@form.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>
+                        <a asp-action="ViewSubmission" asp-route-formId="@form.Id" class="btn btn-info btn-sm">
+                            📜 View Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<a asp-action="Index" class="btn btn-secondary mt-3">⬅ Back to Dashboard</a>

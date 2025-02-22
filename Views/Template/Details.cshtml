@@ -16,15 +16,19 @@
             <div class="p-4 position-relative">
             <p class="text-muted fs-5">@Model.Description</p>
             </div>
-
-<h3>Tags:</h3>
-<div>
+<div class="d-flex flex-wrap gap-2">
+<h4>Tags:</h3>
     @foreach (var tag in Model.TemplateTags.Select(tt => tt.Tag))
     {
-        <a asp-action="Search" asp-route-query="@tag.Name" class="badge bg-secondary text-white text-decoration-none">@tag.Name</a>
+        <a asp-action="Search" 
+           asp-route-query="@tag.Name" 
+           class="tag-box text-decoration-none">
+            @tag.Name
+        </a>
     }
 </div>
 
+<div class="d-flex flex-wrap gap-2">
 @if (User.Identity.IsAuthenticated)
 {
     <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">
@@ -39,6 +43,7 @@ else
 }
 
 <a class="btn btn-info" asp-action="Analytics" asp-route-templateId="@Model.Id">View Analytics</a>
+</div>
 
 <h3>Comments</h3>
 <div id="comments">
@@ -104,6 +109,24 @@ else
 </script>
 
 <style>
+    
+    .tag-box {
+        display: inline-block;
+        padding: 6px 12px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #333;
+        font-size: 14px;
+        margin: 2px;
+        transition: all 0.2s ease;
+    }
+
+    .tag-box:hover {
+        background-color: #e0e0e0;
+        color: #000;
+    }
+
     .banner-container {
     width: 100%;
     height: 300px; /* Fixed height for banner */

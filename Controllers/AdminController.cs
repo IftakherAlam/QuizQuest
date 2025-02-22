@@ -110,8 +110,11 @@ public async Task<IActionResult> DeleteTemplate(int id)
         public async Task<IActionResult> MakeAdmin(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null && !(await _userManager.IsInRoleAsync(user, "Admin")))
+            if (user != null)
             {
+                var existingRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, existingRoles); // ✅ Remove all previous roles
+
                 await _userManager.AddToRoleAsync(user, "Admin");
             }
             return RedirectToAction("ManageUsers");
@@ -170,8 +173,11 @@ public async Task<IActionResult> DeleteTemplate(int id)
         public async Task<IActionResult> MakeCreator(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null && !await _userManager.IsInRoleAsync(user, "Creator"))
+            if (user != null)
             {
+                var existingRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, existingRoles); // ✅ Remove all previous roles
+
                 await _userManager.AddToRoleAsync(user, "Creator");
             }
             return RedirectToAction("ManageUsers");
@@ -193,9 +199,12 @@ public async Task<IActionResult> DeleteTemplate(int id)
         public async Task<IActionResult> MakeUser(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null && !await _userManager.IsInRoleAsync(user, "User"))
+            if (user != null)
             {
-                await _userManager.AddToRoleAsync(user, "User");
+                var existingRoles = await _userManager.GetRolesAsync(user);
+                await _userManager.RemoveFromRolesAsync(user, existingRoles); // ✅ Remove all previous roles
+
+                await _userManager.AddToRoleAsync(user, "User"); 
             }
             return RedirectToAction("ManageUsers");
         }
@@ -211,5 +220,37 @@ public async Task<IActionResult> DeleteTemplate(int id)
             }
             return RedirectToAction("ManageUsers");
         }
+
+        [Authorize(Roles = "Admin")]
+public async Task<IActionResult> AllSubmissions()
+{
+    var submissions = await _context.Forms
+        .Include(f => f.Template)
+        .ThenInclude(t => t.Author) // Get Creator details
+        .Include(f => f.User) // Get User who submitted
+        .Include(f => f.Answers)
+        .ThenInclude(a => a.Question)
+        .OrderByDescending(f => f.SubmissionDate)
+        .ToListAsync();
+
+    return View(submissions);
+}
+[Authorize(Roles = "Admin")]
+public async Task<IActionResult> ViewSubmission(int formId)
+{
+    var form = await _context.Forms
+        .Include(f => f.Template)
+        .ThenInclude(t => t.Author) // Include Creator details
+        .Include(f => f.User) // Include User who submitted
+        .Include(f => f.Answers)
+        .ThenInclude(a => a.Question)
+        .FirstOrDefaultAsync(f => f.Id == formId);
+
+    if (form == null)
+        return NotFound();
+
+    return View(form);
+}
+
     }
 }

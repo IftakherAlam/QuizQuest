@@ -3,15 +3,18 @@
 <div class="container mt-5">
     <div class="card shadow-lg">
         <div class="card-header bg-primary text-white text-center">
-            <h2 class="mb-0">📋 Form Submission</h2>
+            <h2 class="mb-0">📜 Form Submission</h2>
             <h4 class="mt-2">@Model.Template.Title</h4>
         </div>
         <div class="card-body">
+            <p><strong>👤 Submitted By:</strong> @Model.User?.UserName (@Model.User?.Email)</p>
+            <p><strong>📅 Submission Date:</strong> @Model.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</p>
+
             <table class="table table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th class="w-50">📝 Question</th>
-                        <th class="w-50">✅ Answer</th>
+                        <th>📝 Question</th>
+                        <th>✅ Answer</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,8 +53,7 @@
             </table>
         </div>
         <div class="card-footer text-center">
-            <a asp-action="Index" asp-controller="Home" class="btn btn-secondary">🏠 Back to Home</a>
-            <a asp-action="MySubmissions" asp-controller="Form" class="btn btn-primary">📂 View My Submissions</a>
+            <a asp-action="CreatorSubmissions" asp-route-templateId="@Model.Template.Id" class="btn btn-secondary">⬅ Back to Submissions</a>
         </div>
     </div>
 </div>

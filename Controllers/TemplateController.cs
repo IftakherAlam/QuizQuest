@@ -35,14 +35,14 @@ namespace QuizFormsApp.Controllers
 {
     var template = await _context.Templates
         .Include(t => t.Author)
-        .Include(t => t.Questions)
+        .Include(t => t.Questions) // ✅ Ensure Questions are included
         .Include(t => t.AllowedUsers)
+        .Include(t => t.TemplateTags)  // ✅ Include TemplateTags
+            .ThenInclude(tt => tt.Tag)     // ✅ Include the related Tag objects
         .FirstOrDefaultAsync(t => t.Id == id);
 
     if (template == null)
         return NotFound();
-
-     Console.WriteLine($"Template ID: {id}, IsPublic: {template.IsPublic}");
 
     // ✅ If the template is public, allow access without login
     if (template.IsPublic)
@@ -194,30 +194,63 @@ public async Task<IActionResult> Create(Template template, string selectedUsers,
 
 
         // ✅ Edit Template (Only "Creator" can edit their own & Admin can edit any)
-        [Authorize(Roles = "Admin,Creator")]
-        public async Task<IActionResult> Edit(int id)
-        {
-            var template = await _context.Templates.FindAsync(id);
-            if (template == null)
-                return NotFound();
+[Authorize(Roles = "Admin,Creator")]
+public async Task<IActionResult> Edit(int id)
+{
+    var template = await _context.Templates
+        .Include(t => t.Questions) // ✅ Ensure questions are included
+        .Include(t => t.Topic)
+        .Include(t => t.Author)
+        .FirstOrDefaultAsync(t => t.Id == id);
 
-            var user = await _userManager.GetUserAsync(User);
-            bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
+    if (template == null)
+        return NotFound();
 
-            if (isCreator && template.AuthorId != user.Id)
-                return Forbid(); // ✅ Prevents Creators from editing others' templates
+    ViewBag.Topics = await _context.Topics
+        .Select(t => new SelectListItem 
+        { 
+            Value = t.Id.ToString(), 
+            Text = t.Name,
+            Selected = (t.Id == template.TopicId) // Pre-select current topic
+        })
+        .ToListAsync();
 
-            return View(template);
-        }
+    var user = await _userManager.GetUserAsync(User);
+    bool isCreator = await _userManager.IsInRoleAsync(user, "Creator");
 
-     [HttpPost]
+    if (isCreator && template.AuthorId != user.Id)
+        return Forbid(); // ✅ Prevents unauthorized access
+
+    Console.WriteLine($"Template ID: {id}, Questions Count: {template.Questions.Count}"); // ✅ Debugging
+
+    return View(template);
+}
+
+
+
+
+[HttpPost]
 [Authorize(Roles = "Admin,Creator")]
 public async Task<IActionResult> Edit(int id, Template template)
 {
     if (id != template.Id) return NotFound();
 
+    ModelState.Remove("Name");
+    ModelState.Remove("Forms");
+    ModelState.Remove("Likes");
+    ModelState.Remove("Comments");
+    ModelState.Remove("Templates");
+    ModelState.Remove("DisplayName");
+    ModelState.Remove("Template");
+    ModelState.Remove("Author");
+    ModelState.Remove("Template");
+    ModelState.Remove("Topic");
+   
+
     var existingTemplate = await _context.Templates
         .Include(t => t.Questions)  // ✅ Ensure questions are included
+        .Include(t => t.Topic)
+        .Include(t => t.Author)
         .FirstOrDefaultAsync(t => t.Id == id);
 
     if (existingTemplate == null) return NotFound();
@@ -228,13 +261,24 @@ public async Task<IActionResult> Edit(int id, Template template)
     if (isCreator && existingTemplate.AuthorId != user.Id)
         return Forbid(); // ✅ Prevents Creators from editing others' templates
 
+        // ✅ Load topics into ViewBag for dropdown
+
+
     if (ModelState.IsValid)
     {
+        Console.WriteLine($"Template ID: {id}, Title: {existingTemplate.Title}, Description: {existingTemplate.Description}");
+
         existingTemplate.Title = template.Title;
         existingTemplate.Description = template.Description;
+        existingTemplate.ImageUrl = template.ImageUrl;
+        existingTemplate.TopicId = template.TopicId;
+        Console.WriteLine($"✅ Updating TopicId: {template.TopicId}");
 
+        template.Author = existingTemplate.Author;
+        
         // ✅ Update Questions
-        foreach (var updatedQuestion in template.Questions)
+        var updatedQuestions = template.Questions ?? new List<Question>();
+        foreach (var updatedQuestion in updatedQuestions)
         {
             var existingQuestion = existingTemplate.Questions.FirstOrDefault(q => q.Id == updatedQuestion.Id);
             if (existingQuestion != null)
@@ -242,14 +286,40 @@ public async Task<IActionResult> Edit(int id, Template template)
                 existingQuestion.Text = updatedQuestion.Text;
                 existingQuestion.Description = updatedQuestion.Description;
                 existingQuestion.Type = updatedQuestion.Type;
+                
                 existingQuestion.IsInTable = updatedQuestion.IsInTable;
+
+                _context.Entry(existingQuestion).State = EntityState.Modified;
+            }
+            else
+            {
+                updatedQuestion.TemplateId = template.Id;
+                _context.Questions.Add(updatedQuestion);
             }
         }
 
-        _context.Update(existingTemplate);
+          try
+    {
         await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
+        TempData["SuccessMessage"] = "✅ Template updated successfully!";
     }
+    catch (Exception ex)
+    {
+        TempData["ErrorMessage"] = "❌ Error saving changes: " + ex.Message;
+    }
+
+        return RedirectToAction(nameof(Edit), new { id });
+    }
+
+     // If validation fails, repopulate ViewBag.Topics
+    ViewBag.Topics = await _context.Topics
+        .Select(t => new SelectListItem
+        {
+            Value = t.Id.ToString(),
+            Text = t.Name,
+            Selected = (t.Id == template.TopicId)
+        })
+        .ToListAsync();
 
     return View(template);
 }
@@ -274,7 +344,9 @@ public async Task<IActionResult> Edit(int id, Template template)
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-        [HttpGet]
+
+    
+[HttpGet]
 public async Task<IActionResult> SearchUsers(string query)
 {
     if (string.IsNullOrEmpty(query))

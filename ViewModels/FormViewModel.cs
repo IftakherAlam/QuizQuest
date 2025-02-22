@@ -3,11 +3,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace QuizFormsApp.ViewModels
 {
-    public class FormViewModel
-    {
-        public int TemplateId { get; set; }
-        public string TemplateTitle { get; set; }
-        public List<AnswerViewModel> Questions { get; set; } = new List<AnswerViewModel>();
-    }
+   public class FormViewModel
+{
+    [Required]
+    public int TemplateId { get; set; }
+
+    [Required]
+    public string TemplateTitle { get; set; } = string.Empty;
+
+    [Required]
+    public List<AnswerViewModel> Questions { get; set; } = new List<AnswerViewModel>();
+}
+
 
 }

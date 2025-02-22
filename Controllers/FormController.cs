@@ -22,8 +22,54 @@ namespace QuizFormsApp.Controllers
             _userManager = userManager;
         }
 
+[Authorize(Roles = "Creator")]
+public async Task<IActionResult> CreatorSubmissions(int templateId)
+{
+    var user = await _userManager.GetUserAsync(User);
+
+    var template = await _context.Templates
+        .Include(t => t.Forms)
+        .ThenInclude(f => f.User)
+        .Include(t => t.Forms)
+        .ThenInclude(f => f.Answers)
+        .ThenInclude(a => a.Question)
+        .FirstOrDefaultAsync(t => t.Id == templateId && t.AuthorId == user.Id);
+
+    if (template == null)
+    {
+        return NotFound();
+    }
+
+    return View(template);
+}
+[Authorize(Roles = "Admin,Creator")]
+public async Task<IActionResult> ViewSubmission(int formId)
+{
+    var user = await _userManager.GetUserAsync(User);
+    var form = await _context.Forms
+        .Include(f => f.Template)
+        .Include(f => f.User)
+        .Include(f => f.Answers)
+        .ThenInclude(a => a.Question)
+        .FirstOrDefaultAsync(f => f.Id == formId);
+
+    if (form == null)
+        return NotFound();
+
+    // ✅ Ensure Creators can only view submissions for their own templates
+    if (await _userManager.IsInRoleAsync(user, "Creator") && form.Template.AuthorId != user.Id)
+    {
+        return Forbid();
+    }
+
+    return View(form);
+}
+
+
+
+
         // ✅ Show Form for Submission (Merged Logic)
-   [HttpGet]
+[HttpGet]
 [Route("Form/Fill/{templateId}")]
 public async Task<IActionResult> Fill(int templateId)
 {
@@ -76,66 +122,106 @@ public async Task<IActionResult> Fill(int templateId)
 
         // ✅ Submit Form
 
-[HttpPost]
+        [HttpPost]
 [Route("Form/Submit")]
-public async Task<IActionResult> Submit(int templateId, Dictionary<int, string> textAnswers, Dictionary<int, int> intAnswers, Dictionary<int, bool> checkboxAnswers)
+public async Task<IActionResult> Submit(FormViewModel model)
 {
-    var template = await _context.Templates
-        .Include(t => t.Questions)
-        .FirstOrDefaultAsync(t => t.Id == templateId);
-
-    if (template == null)
-        return NotFound();
-
-    var user = await _userManager.GetUserAsync(User);
-
-    // ✅ Create a new form submission record
-    var form = new Form
+    try
     {
-        TemplateId = templateId,
-        UserId = user.Id,
-        SubmissionDate = DateTime.UtcNow
-    };
-
-    _context.Forms.Add(form);
-    await _context.SaveChangesAsync(); // Save form to get FormId
-
-    var answers = new List<Answer>();
-
-    // ✅ Process Text Answers
-    if (textAnswers != null)
-    {
-        foreach (var entry in textAnswers)
+        // ✅ Debugging: Check if Model is received correctly
+        Console.WriteLine($"🚀 SUBMITTING FORM for Template ID: {model.TemplateId}");
+        
+        if (!ModelState.IsValid)
         {
-            answers.Add(new Answer { QuestionId = entry.Key, FormId = form.Id, TextValue = entry.Value });
+            Console.WriteLine("❌ ModelState is INVALID!");
+            TempData["ErrorMessage"] = "❌ Please correct the errors and try again.";
+            return View("Fill", model); // Reload the form with errors
         }
-    }
 
-    // ✅ Process Integer Answers
-    if (intAnswers != null)
-    {
-        foreach (var entry in intAnswers)
+        // ✅ Fetch Template
+        var template = await _context.Templates
+            .Include(t => t.Questions)
+            .FirstOrDefaultAsync(t => t.Id == model.TemplateId);
+
+        if (template == null)
         {
-            answers.Add(new Answer { QuestionId = entry.Key, FormId = form.Id, IntegerValue = entry.Value });
+            Console.WriteLine("❌ ERROR: Template not found!");
+            TempData["ErrorMessage"] = "❌ Template not found.";
+            return RedirectToAction("Index");
         }
-    }
 
-    // ✅ Process Checkbox Answers
-    if (checkboxAnswers != null)
-    {
-        foreach (var entry in checkboxAnswers)
+        // ✅ Fetch User
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
         {
-            answers.Add(new Answer { QuestionId = entry.Key, FormId = form.Id, BooleanValue = entry.Value });
+            Console.WriteLine("❌ ERROR: User not found!");
+            TempData["ErrorMessage"] = "❌ User not found.";
+            return RedirectToAction("Index");
         }
+
+        // ✅ Create new Form Submission
+        var formSubmission = new Form
+        {
+            TemplateId = model.TemplateId,
+            UserId = user.Id,
+            SubmissionDate = DateTime.UtcNow,
+            Answers = new List<Answer>()
+        };
+
+        Console.WriteLine($"✅ DEBUG: Processing {model.Questions.Count} Answers");
+
+        // ✅ Process and Save Answers
+        foreach (var question in model.Questions)
+        {
+            var answer = new Answer
+            {
+                QuestionId = question.QuestionId,
+                Form = formSubmission
+            };
+
+            if (question.Type == "Checkbox")
+            {
+                answer.BooleanValue = question.CheckboxAnswer;
+                Console.WriteLine($"✔ Checkbox Answer: {question.QuestionId} = {answer.BooleanValue}");
+            }
+            else if (question.Type == "Integer")
+            {
+                if (int.TryParse(question.Answer, out var intVal))
+                {
+                    answer.IntegerValue = intVal;
+                    Console.WriteLine($"✔ Integer Answer: {question.QuestionId} = {answer.IntegerValue}");
+                }
+                else
+                {
+                    Console.WriteLine($"❌ ERROR: Invalid integer for Question ID {question.QuestionId}");
+                }
+            }
+            else
+            {
+                answer.TextValue = question.Answer;
+                Console.WriteLine($"✔ Text Answer: {question.QuestionId} = {answer.TextValue}");
+            }
+
+            formSubmission.Answers.Add(answer);
+        }
+
+        _context.Forms.Add(formSubmission);
+        await _context.SaveChangesAsync();
+
+        Console.WriteLine("✅ FORM SUBMITTED SUCCESSFULLY!");
+
+        TempData["SuccessMessage"] = "✅ Form submitted successfully!";
+
+        // ✅ Redirect to Confirmation Page
+        return RedirectToAction("Confirmation", new { id = formSubmission.Id });
     }
-
-    _context.Answers.AddRange(answers);
-    await _context.SaveChangesAsync(); // Save all answers
-
-    // ✅ Redirect to Confirmation Page
-    return RedirectToAction("Confirmation", new { formId = form.Id });
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ ERROR: {ex.Message}");
+        TempData["ErrorMessage"] = "❌ An error occurred while submitting the form.";
+        return View("Fill", model);
+    }
 }
-
 
 
         // ✅ Show User's Submitted Forms
@@ -150,19 +236,25 @@ public async Task<IActionResult> Submit(int templateId, Dictionary<int, string> 
             return View(forms);
         }
 
-
-[Route("Form/Confirmation/{formId}")]
-public async Task<IActionResult> Confirmation(int formId)
+[Route("Form/Confirmation/{id}")]
+public async Task<IActionResult> Confirmation(int id)
 {
+    Console.WriteLine($"🚀 LOADING CONFIRMATION PAGE for Form ID: {id}");
+
     var form = await _context.Forms
         .Include(f => f.Template)
         .Include(f => f.Answers)
         .ThenInclude(a => a.Question)
-        .FirstOrDefaultAsync(f => f.Id == formId);
+        .FirstOrDefaultAsync(f => f.Id == id);
 
     if (form == null)
-        return NotFound();
+    {
+        Console.WriteLine("❌ ERROR: Form not found!");
+        TempData["ErrorMessage"] = "❌ Form submission not found!";
+        return RedirectToAction("Index");
+    }
 
+    Console.WriteLine("✅ CONFIRMATION PAGE LOADED SUCCESSFULLY!");
     return View(form);
 }
 

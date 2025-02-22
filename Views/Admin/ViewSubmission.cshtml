@@ -1,0 +1,49 @@
+@model QuizFormsApp.Models.Form
+
+@{
+    ViewData["Title"] = "Submission Details";
+}
+
+<h2>📜 Submission Details</h2>
+
+<div class="card shadow-sm p-3 mb-4">
+    <h4 class="mb-2">📄 Template: @Model.Template.Title</h4>
+    <p><strong>👤 Creator:</strong> @Model.Template.Author.DisplayName (@Model.Template.Author.Email)</p>
+    <p><strong>👥 Submitted By:</strong> @Model.User.DisplayName (@Model.User.Email)</p>
+    <p><strong>📅 Submission Date:</strong> @Model.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</p>
+</div>
+
+<h3>📝 Answers</h3>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Question</th>
+            <th>Your Answer</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var answer in Model.Answers)
+        {
+            <tr>
+                <td>@answer.Question.Text</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(answer.TextValue))
+                    {
+                        @answer.TextValue
+                    }
+                    else if (answer.IntegerValue.HasValue)
+                    {
+                        @answer.IntegerValue
+                    }
+                    else if (answer.BooleanValue.HasValue)
+                    {
+                        @(answer.BooleanValue.Value ? "✔ Yes" : "❌ No")
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="AllSubmissions" class="btn btn-secondary mt-3">⬅ Back to All Submissions</a>
