@@ -12,12 +12,13 @@
 <p><strong>Created by:</strong> @Model.Author.DisplayName</p>
 <p><strong>Public:</strong> @(Model.IsPublic ? "Yes" : "No")</p>
 <p><strong>Description</strong></p>
-           
-            <div class="p-4 position-relative">
-            <p class="text-muted fs-5">@Model.Description</p>
-            </div>
+
+<div class="p-4 position-relative">
+    <p class="text-muted fs-5">@Model.Description</p>
+</div>
+
 <div class="d-flex flex-wrap gap-2">
-<h4>Tags:</h3>
+    <h4>Tags:</h4>
     @foreach (var tag in Model.TemplateTags.Select(tt => tt.Tag))
     {
         <a asp-action="Search" 
@@ -29,20 +30,20 @@
 </div>
 
 <div class="d-flex flex-wrap gap-2">
-@if (User.Identity.IsAuthenticated)
-{
-    <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">
-        Fill Out Form
-    </a>
-}
-else
-{
-    <p class="alert alert-warning">
-        <strong>Note:</strong> You must <a asp-controller="Account" asp-action="Login">log in</a> to submit this form.
-    </p>
-}
+    @if (User.Identity.IsAuthenticated)
+    {
+        <a class="btn btn-primary" asp-controller="Form" asp-action="Fill" asp-route-templateId="@Model.Id">
+            Fill Out Form
+        </a>
+    }
+    else
+    {
+        <p class="alert alert-warning">
+            <strong>Note:</strong> You must <a asp-controller="Account" asp-action="Login">log in</a> to submit this form.
+        </p>
+    }
 
-<a class="btn btn-info" asp-action="Analytics" asp-route-templateId="@Model.Id">View Analytics</a>
+    <a class="btn btn-info" asp-action="Analytics" asp-route-templateId="@Model.Id">View Analytics</a>
 </div>
 
 <h3>Comments</h3>
@@ -65,51 +66,72 @@ else
         <button type="submit" class="btn btn-success mt-2">Post Comment</button>
     </form>
 }
-<button id="likeButton" class="btn btn-outline-danger">
+
+<!-- Like Button -->
+<button id="likeButton" class="btn btn-outline-danger" data-template-id="@Model.Id">
     ❤️ <span id="likeCount">@Model.Likes.Count</span>
 </button>
+<input type="hidden" id="templateId" value="@Model.Id">
 
+
+<!-- SignalR -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
 <script>
-    var connection = new signalR.HubConnectionBuilder().withUrl("/commentHub").build();
+    document.addEventListener("DOMContentLoaded", function () {
+        var templateId = document.getElementById("templateId").value;
 
-    connection.on("ReceiveComment", function (templateId, userName, text) {
-        if (templateId == @Model.Id) {
-            var newComment = `<div class="card mb-2">
-                <div class="card-body">
-                    <strong>${userName}</strong> - <span class="text-muted">Just now</span>
-                    <p>${text}</p>
-                </div>
-            </div>`;
-            document.getElementById("comments").innerHTML += newComment;
-        }
-    });
+        // SignalR Connection
+        var connection = new signalR.HubConnectionBuilder().withUrl("/commentHub").build();
 
-    connection.start().catch(err => console.error(err.toString()));
+        connection.on("ReceiveComment", function (receivedTemplateId, userName, text) {
+            if (receivedTemplateId == templateId) {
+                var newComment = `<div class="card mb-2">
+                    <div class="card-body">
+                        <strong>${userName}</strong> - <span class="text-muted">Just now</span>
+                        <p>${text}</p>
+                    </div>
+                </div>`;
+                document.getElementById("comments").innerHTML += newComment;
+            }
+        });
 
-    document.getElementById("commentForm")?.addEventListener("submit", function(event) {
-        event.preventDefault();
-        let commentText = document.getElementById("commentText").value;
+        connection.on("ReceiveLikeUpdate", function (receivedTemplateId, likeCount) {
+            if (receivedTemplateId == templateId) {
+                document.getElementById("likeCount").textContent = likeCount;
+            }
+        });
 
-        fetch('/Comment/Add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ templateId: @Model.Id, text: commentText })
-        }).then(response => {
-            if (response.ok) document.getElementById("commentText").value = "";
+        connection.start().catch(err => console.error(err.toString()));
+
+        // Post Comment
+        document.getElementById("commentForm")?.addEventListener("submit", function (event) {
+            event.preventDefault();
+            let commentText = document.getElementById("commentText").value;
+
+            fetch('/Comment/Add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ templateId: templateId, text: commentText })
+            }).then(response => {
+                if (response.ok) {
+                    document.getElementById("commentText").value = "";
+                }
+            });
+        });
+
+        // Toggle Like
+        document.getElementById("likeButton")?.addEventListener("click", function () {
+            fetch(`/Like/ToggleLike?templateId=${templateId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("likeCount").textContent = data.likes;
+                });
         });
     });
-    document.getElementById("likeButton")?.addEventListener("click", function() {
-    fetch('/Like/ToggleLike?templateId=@Model.Id', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("likeCount").textContent = data.likes;
-        });
-});
 </script>
 
+<!-- Styles -->
 <style>
-    
     .tag-box {
         display: inline-block;
         padding: 6px 12px;
@@ -128,20 +150,19 @@ else
     }
 
     .banner-container {
-    width: 100%;
-    height: 300px; /* Fixed height for banner */
-    overflow: hidden; /* Ensures no extra white space */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-.banner-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Ensures the image fills the container properly */
-    border-radius: 10px; /* Optional: Adds rounded corners */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Optional: Adds a shadow for depth */
-}
-
+    .banner-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
 </style>

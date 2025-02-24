@@ -31,14 +31,17 @@ namespace QuizFormsApp.Controllers
             return View(templates);
         }
          // ✅ View Template Details
-   public async Task<IActionResult> Details(int id)
+ public async Task<IActionResult> Details(int id)
 {
     var template = await _context.Templates
         .Include(t => t.Author)
-        .Include(t => t.Questions) // ✅ Ensure Questions are included
+        .Include(t => t.Questions)  // ✅ Ensure Questions are included
         .Include(t => t.AllowedUsers)
-        .Include(t => t.TemplateTags)  // ✅ Include TemplateTags
-            .ThenInclude(tt => tt.Tag)     // ✅ Include the related Tag objects
+        .Include(t => t.TemplateTags)
+            .ThenInclude(tt => tt.Tag) // ✅ Include related Tag objects
+        .Include(t => t.Comments) 
+            .ThenInclude(c => c.User) // ✅ Ensure Comments include the User who posted them
+        .Include(t => t.Likes)  // ✅ Ensure Likes are included
         .FirstOrDefaultAsync(t => t.Id == id);
 
     if (template == null)
@@ -65,6 +68,7 @@ namespace QuizFormsApp.Controllers
 
     return View(template);
 }
+
 
 
 

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QuizFormsApp.Data;
 using QuizFormsApp.Models;
+using Microsoft.AspNetCore.SignalR;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddSignalR();
 
 //✅ for restrict the admin dashboard to users with the admin role only
 
@@ -87,6 +90,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapHub<CommentHub>("/commentHub");
 
 app.MapRazorPages(); // ✅ Ensure Identity UI Pages are mapped
 
