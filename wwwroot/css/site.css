@@ -28,5 +28,6 @@ main {
   color: white;
   padding: 20px 0;
   text-align: center;
-  margin-top: auto; /* Removes fixed margin */
+  margin-top: 40px; /* Removes fixed margin */
+  
 }

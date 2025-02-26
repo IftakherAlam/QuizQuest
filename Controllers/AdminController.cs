@@ -30,7 +30,7 @@ namespace QuizFormsApp.Controllers
             // ✅ Fetch Stats for Dashboard
             ViewBag.TotalUsers = await _userManager.Users.CountAsync();
             ViewBag.TotalTemplates = await _context.Templates.CountAsync();
-            ViewBag.TotalForms = await _context.Answers.CountAsync(); // Assuming `Answers` store form submissions
+            ViewBag.TotalForms = await _context.Forms.CountAsync();  // Assuming `Answers` store form submissions
             
             // ✅ Fetch Recent Templates
             ViewBag.RecentTemplates = await _context.Templates
