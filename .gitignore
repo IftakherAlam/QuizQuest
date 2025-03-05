@@ -21,6 +21,8 @@ packages/
 appsettings.*.json
 secrets.json
 
+appsettings.json
+
 # Ignore compiled files
 *.exe
 *.dll

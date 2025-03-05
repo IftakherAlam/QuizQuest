@@ -1,0 +1,20 @@
+@model Dictionary<string, object>
+
+<h2>My Salesforce Data</h2>
+
+@if (Model != null && Model.ContainsKey("records"))
+{
+    var records = (System.Text.Json.JsonElement)Model["records"];
+    foreach (var record in records.EnumerateArray())
+    {
+        <ul class="list-group">
+            <li class="list-group-item"><strong>ID:</strong> @record.GetProperty("Id").GetString()</li>
+            <li class="list-group-item"><strong>Email:</strong> @record.GetProperty("Email").GetString()</li>
+            <li class="list-group-item"><strong>AccountId:</strong> @record.GetProperty("AccountId").GetString()</li>
+        </ul>
+    }
+}
+else
+{
+    <div class="alert alert-info">No Salesforce data found for your email.</div>
+}

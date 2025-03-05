@@ -10,6 +10,8 @@ namespace QuizFormsApp.Models
 
         public string PreferredLanguage { get; set; } = "en";
         public string Theme { get; set; } = "light";
+        public bool IsSalesforceSynced { get; set; } = false;
+
          public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Template> Templates { get; set; }
         public ICollection<Form> Forms { get; set; }

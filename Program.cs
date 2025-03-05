@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
+using QuizFormsApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,8 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddRazorPages(); 
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddSingleton<SalesforceService>();
+
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuizFormsApp.Data;
 using QuizFormsApp.Models;
+using QuizFormsApp.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,12 +16,18 @@ namespace QuizFormsApp.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly AppDbContext _context;
+        private readonly SalesforceService _salesforceService;
 
-        public ProfileController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, AppDbContext context)
+        public ProfileController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            AppDbContext context,
+            SalesforceService salesforceService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _salesforceService = salesforceService;
         }
 
         public async Task<IActionResult> Index()
@@ -72,10 +79,60 @@ namespace QuizFormsApp.Controllers
             {
                 LikedTemplates = likedTemplates,
                 SubmittedForms = submittedForms,
-                Comments = comments
+                Comments = comments,
+                IsSalesforceSynced = user.IsSalesforceSynced
             };
 
             return View(userDashboardData);
         }
+         // ✅ Salesforce Sync Action
+[HttpPost]
+public async Task<IActionResult> SyncToSalesforceForm(SalesforceSyncViewModel model)
+{
+    var user = await _userManager.GetUserAsync(User);
+
+    var (accessToken, instanceUrl) = await _salesforceService.AuthenticateAsync();
+
+    // Create Account with form data
+    var accountId = await _salesforceService.CreateAccountAsync(accessToken, instanceUrl, model.CompanyName);
+
+    // Create Contact linked to Account
+    await _salesforceService.CreateContactAsync(
+        accessToken,
+        instanceUrl,
+        user.DisplayName,
+        user.Email,
+        accountId
+    );
+
+    user.IsSalesforceSynced = true;
+    await _userManager.UpdateAsync(user);
+
+
+    TempData["SuccessMessage"] = "Successfully synced with Salesforce!";
+
+    return RedirectToAction("UserDashboard");
+}
+
+
+[HttpGet]
+public IActionResult SyncToSalesforceForm()
+{
+    return View();
+}
+
+[HttpGet]
+public async Task<IActionResult> ViewMySalesforceData()
+{
+    var user = await _userManager.GetUserAsync(User);
+
+    var (accessToken, instanceUrl) = await _salesforceService.AuthenticateAsync();
+    var contactData = await _salesforceService.GetContactByEmailAsync(accessToken, instanceUrl, user.Email);
+
+    return View(contactData);
+}
+
+
+
     }
 }
