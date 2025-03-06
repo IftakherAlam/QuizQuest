@@ -2,6 +2,27 @@
 
 <h2>👤 Creator Dashboard</h2>
 
+<!-- Get API Token Button -->
+<button id="getApiTokenBtn" class="btn btn-warning mb-3">🔑 Get API Token</button>
+
+<!-- API Token Modal -->
+<div class="modal fade" id="apiTokenModal" tabindex="-1" aria-labelledby="apiTokenModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="apiTokenModalLabel">Your API Token</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="apiTokenText" class="text-break fw-bold"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @if (!Model.Any())
 {
     <div class="alert alert-info">You haven't created any templates yet.</div>
@@ -32,3 +53,22 @@ else
         }
     </div>
 }
+
+@section Scripts {
+    <script>
+        document.getElementById('getApiTokenBtn').addEventListener('click', function () {
+            fetch('@Url.Action("GetApiToken")')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('apiTokenText').textContent = data.token;
+                    var modal = new bootstrap.Modal(document.getElementById('apiTokenModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    alert('Error fetching API Token');
+                    console.error(error);
+                });
+        });
+    </script>
+}
+

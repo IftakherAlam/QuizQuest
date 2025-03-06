@@ -132,6 +132,22 @@ public async Task<IActionResult> ViewMySalesforceData()
     return View(contactData);
 }
 
+[Authorize(Roles = "Creator")]
+[HttpGet]
+public async Task<IActionResult> GetApiToken()
+{
+    var user = await _userManager.GetUserAsync(User);
+
+    if (string.IsNullOrEmpty(user.ApiToken))
+    {
+        // Generate token if not existing (optional)
+        user.ApiToken = Guid.NewGuid().ToString();
+        await _userManager.UpdateAsync(user);
+    }
+
+    return Json(new { token = user.ApiToken });
+}
+
 
 
     }

@@ -19,6 +19,7 @@ namespace QuizFormsApp.Data
         public DbSet<Tag> Tags { get; set; }
         public DbSet<TemplateTag> TemplateTags { get; set; }
 
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

@@ -12,6 +12,8 @@ namespace QuizFormsApp.Models
         public string Theme { get; set; } = "light";
         public bool IsSalesforceSynced { get; set; } = false;
 
+        public string? ApiToken { get; set; }
+
          public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Template> Templates { get; set; }
         public ICollection<Form> Forms { get; set; }

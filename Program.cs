@@ -44,6 +44,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddSingleton<SalesforceService>();
+builder.Services.AddSingleton<JiraService>();
 
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>

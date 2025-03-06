@@ -20,15 +20,20 @@
     </div>
 }
 
-
 <!-- ✅ Actions -->
 <div class="d-flex gap-2 my-4">
     <a asp-action="SyncToSalesforceForm" class="btn btn-primary">Sync to Salesforce</a>
     <a asp-action="ViewMySalesforceData" class="btn btn-info">View My Salesforce Data</a>
 </div>
 
+<h3 class="mt-5">My Support Tickets</h3>
+<div id="ticketsContainer">
+    <div class="text-center py-3" id="ticketsLoading">Loading tickets...</div>
+</div>
+<button id="loadMoreTickets" class="btn btn-secondary mt-3">Load More</button>
+
 <!-- ✅ Dashboard Sections -->
-<div class="row g-4">
+<div class="row g-4 mt-5">
     <!-- Liked Templates -->
     <div class="col-md-4">
         <div class="card shadow-sm">
@@ -113,3 +118,65 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    let currentPage = 1;
+
+async function loadTickets() {
+    try {
+        const response = await fetch(`/api/ticket/my-tickets?page=${currentPage}`);
+        const data = await response.json();
+        
+        console.log('API Response:', data); // For debugging
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to load tickets');
+        }
+
+        const container = document.getElementById('ticketsContainer');
+        const loadingMessage = document.getElementById('ticketsLoading');
+
+        if (loadingMessage) loadingMessage.remove();
+
+        if (!data.tickets || data.tickets.length === 0) {
+            if (currentPage === 1) {
+                container.innerHTML = `<div class="alert alert-info">No support tickets found.</div>`;
+            }
+            document.getElementById('loadMoreTickets').disabled = true;
+            document.getElementById('loadMoreTickets').innerText = "No more tickets";
+            return;
+        }
+
+        // Clear container on first load
+        if (currentPage === 1) {
+            container.innerHTML = '';
+        }
+
+        data.tickets.forEach(ticket => {
+            container.innerHTML += `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <h5>${ticket.summary}</h5>
+                        <p>Status: ${ticket.status}</p>
+                        <a href="${ticket.link}" target="_blank">View in Jira</a>
+                    </div>
+                </div>`;
+        });
+
+        currentPage++;
+
+    } catch (error) {
+        console.error('❌ Error loading tickets:', error);
+        const container = document.getElementById('ticketsContainer');
+        container.innerHTML = `<div class="alert alert-danger">Error loading tickets: ${error.message}</div>`;
+        document.getElementById('loadMoreTickets').disabled = true;
+    }
+}
+
+document.getElementById('loadMoreTickets').addEventListener('click', loadTickets);
+
+// Initial load
+loadTickets();
+</script>
+}
